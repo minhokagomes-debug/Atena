@@ -108,7 +108,7 @@ class AtenaOrganismo:
         # Uso de .get() por segurança extrema
         ciclo = self.estado.get('ciclo', 0)
         scripts = self.estado.get('scripts_gerados', 0)
-        reparos = self.estado.get('falhas_corrigidas', 0)
+        reparos = self.estado.get('falhas_corrigidas', 0
 
         conteudo = f"# 🔱 ATENA Ω - Diário de Evolução\n\n"
         conteudo += f"**Ciclo:** {ciclo} | **Sincronização:** {ts}\n"
@@ -117,3 +117,35 @@ class AtenaOrganismo:
         conteudo += f"- Módulos Criados: {scripts}\n"
         conteudo += f"- Auto-Reparos: {reparos}\n\n"
         conteudo += f"### 🧠 Último Insight Gerado\n
+                conteudo += "---\n*Este documento é gerado autonomamente pela ATENA Ω.*"
+        
+        (self.base_dir / "wiki_update.md").write_text(conteudo)
+
+    def viver(self):
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s')
+        logging.info(f"🔱 ATENA Ω v48.2 - INICIANDO CICLO {self.estado.get('ciclo', 0)}")
+        
+        # 1. Execução e Diagnóstico
+        self.executar_e_diagnosticar()
+        
+        # 2. Evolução ou Conserto
+        pensamento = self.auto_mutacao_ou_reparo()
+        
+        # 3. Preparação da Wiki
+        self.gerar_relatorio_wiki(pensamento)
+        
+        # 4. Loop de vida de 5 minutos (300 segundos) com batimento variável
+        while (time.time() - self.start_time) < 300:
+            restante = int(300 - (time.time() - self.start_time))
+            logging.info(f"⏳ Vivo e Processando... {restante}s para hibernação.")
+            
+            # Intervalo aleatório para simular atividade real (40 a 70s)
+            espera = random.randint(40, 70)
+            time.sleep(min(espera, restante if restante > 0 else 1))
+
+        # Salva o estado final do ciclo
+        self.estado["ciclo"] += 1
+        self.estado_path.write_text(json.dumps(self.estado, indent=4))
+
+if __name__ == "__main__":
+    AtenaOrganismo().viver()
