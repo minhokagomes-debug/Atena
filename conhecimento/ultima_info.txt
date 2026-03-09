@@ -1,0 +1,2 @@
+Título: AI Python debugger (Open Source fork of pysnooper)
+Link: https://github.com/alvin-r/snooper-ai
