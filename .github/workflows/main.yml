@@ -23,10 +23,9 @@ jobs:
       - name: Executar ATENA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GROK_API_KEY: ${{ secrets.GROK_API_KEY }} # Chave corrigida!
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         run: |
-          mkdir -p data logs cache dna_history pensamentos conhecimento
-          # Timeout de 6 minutos para dar tempo de salvar tudo
+          mkdir -p data logs cache dna_history pensamentos modules/atena_autogen conhecimento
           timeout 360s xvfb-run --server-args="-screen 0 1920x1080x24" python main.py
       - name: Persistir Mutacao
         if: always()
@@ -35,4 +34,14 @@ jobs:
           git config --global user.email "atena@ia.com"
           git add .
           git diff --quiet && git diff --staged --quiet || (git commit -m "Evolução Ciclo ${GITHUB_RUN_NUMBER}" && git push origin main)
+      - name: Atualizar Wiki
+        if: always()
+        run: |
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki_repo || exit 0
+          cp wiki_update.md wiki_repo/Home.md
+          cd wiki_repo
+          git config --global user.name "Atena Historian"
+          git config --global user.email "atena@ia.com"
+          git add .
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Wiki Update Ciclo" && git push)
           
