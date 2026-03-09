@@ -15,33 +15,36 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Instalar Dependencias
+      - name: Instalar Dependências
         run: |
-          sudo apt-get update
-          sudo apt-get install -y scrot xvfb
-          pip install requests python-dotenv feedparser opencv-python numpy pyautogui Pillow
+          pip install requests python-dotenv
       - name: Executar ATENA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          mkdir -p data logs cache dna_history pensamentos modules/atena_autogen conhecimento
-          timeout 360s xvfb-run --server-args="-screen 0 1920x1080x24" python main.py
-      - name: Persistir Mutacao
+          # Garante que o ficheiro de estado existe antes de rodar
+          mkdir -p data
+          if [ ! -f data/estado.json ]; then echo '{"ciclo": 0, "falhas_corrigidas": 0, "scripts_gerados": 0}' > data/estado.json; fi
+          timeout 360s python main.py
+      - name: Persistir Evolução
         if: always()
         run: |
           git config --global user.name "Atena Omega"
           git config --global user.email "atena@ia.com"
           git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Evolução Ciclo ${GITHUB_RUN_NUMBER}" && git push origin main)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Evolução Ciclo Real" && git push)
       - name: Atualizar Wiki
         if: always()
         run: |
+          # Tenta atualizar a Wiki se ela estiver habilitada
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki_repo || exit 0
-          cp wiki_update.md wiki_repo/Home.md
-          cd wiki_repo
-          git config --global user.name "Atena Historian"
-          git config --global user.email "atena@ia.com"
-          git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Wiki Update Ciclo" && git push)
-          
+          if [ -f wiki_update.md ]; then
+            cp wiki_update.md wiki_repo/Home.md
+            cd wiki_repo
+            git config --global user.name "Atena Historian"
+            git config --global user.email "atena@ia.com"
+            git add .
+            git diff --quiet && git diff --staged --quiet || (git commit -m "Update Wiki" && git push)
+          fi
