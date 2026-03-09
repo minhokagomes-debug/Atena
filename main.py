@@ -4,6 +4,7 @@ import logging
 import requests
 import time
 import subprocess
+import random
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
@@ -25,24 +26,24 @@ class AtenaOrganismo:
             (self.base_dir / p).mkdir(parents=True, exist_ok=True)
 
     def _carregar_estado(self):
+        padrao = {"ciclo": 0, "falhas_corrigidas": 0, "scripts_gerados": 0}
         if self.estado_path.exists():
             try: 
                 data = json.loads(self.estado_path.read_text())
-                # Garante que as chaves existam (Correção do KeyError)
-                data.setdefault("ciclo", 0)
-                data.setdefault("falhas_corrigidas", 0)
-                data.setdefault("scripts_gerados", 0)
+                for k, v in padrao.items():
+                    data.setdefault(k, v)
                 return data
             except: pass
-        return {"ciclo": 0, "falhas_corrigidas": 0, "scripts_gerados": 0}
+        return padrao
 
     def executar_e_diagnosticar(self):
         folder = self.base_dir / "modules/atena_autogen"
         scripts = list(folder.glob("*.py"))
         for script in scripts:
             try:
-                logging.info(f"🚀 Testando módulo: {script.name}")
-                result = subprocess.run(["python", str(script)], capture_output=True, text=True, timeout=20)
+                logging.info(f"🚀 Ativando módulo: {script.name}")
+                # Execução real com limite de tempo
+                result = subprocess.run(["python", str(script)], capture_output=True, text=True, timeout=25)
                 if result.returncode != 0:
                     self.erros_do_ciclo.append({"file": script.name, "msg": result.stderr})
             except Exception as e:
@@ -52,12 +53,16 @@ class AtenaOrganismo:
         if not self.grok_key: return "Grok Offline"
         headers = {"Authorization": f"Bearer {self.grok_key}", "Content-Type": "application/json"}
         
+        # Aleatoriedade na escolha do que evoluir (Decisão Real)
+        focos_reais = ["análise de logs do sistema", "otimização de banco de dados SQLite", "web scraping de tendências", "processamento de imagem real"]
+        objetivo = random.choice(focos_reais)
+
         if self.erros_do_ciclo:
             erro = self.erros_do_ciclo[0]
-            prompt = f"O script {erro['file']} falhou: {erro['msg']}. Escreva o código Python corrigido (máx 10 linhas). APENAS O CÓDIGO."
+            prompt = f"O script {erro['file']} falhou: {erro['msg']}. Corrija o código. APENAS O CÓDIGO PYTHON."
             modo = "reparo"
         else:
-            prompt = f"Crie um script Python de 5 linhas para monitorar sistema. APENAS O CÓDIGO."
+            prompt = f"Crie um script funcional de 5-10 linhas focado em {objetivo}. APENAS O CÓDIGO PYTHON."
             modo = "evolucao"
 
         try:
@@ -65,43 +70,32 @@ class AtenaOrganismo:
                                  headers=headers, 
                                  json={"model": "grok-beta", "messages": [{"role": "user", "content": prompt}]})
             novo_dna = res.json()['choices'][0]['message']['content'].split("```python")[-1].split("```")[0].strip()
-            nome_arquivo = erro['file'] if modo == "reparo" else f"evolve_c{self.estado['ciclo']}_{int(time.time())}.py"
+            
+            # ID aleatório para evitar colisão de arquivos
+            id_unico = random.randint(1000, 9999)
+            nome_arquivo = erro['file'] if modo == "reparo" else f"dna_v{self.estado['ciclo']}_{id_unico}.py"
             (self.base_dir / f"modules/atena_autogen/{nome_arquivo}").write_text(novo_dna)
             
             if modo == "reparo": self.estado["falhas_corrigidas"] += 1
             else: self.estado["scripts_gerados"] += 1
             return novo_dna
-        except: return "print('Neural Link Error')"
+        except: return "print('Falha no link neural')"
 
     def gerar_relatorio_wiki(self, pensamento):
         ts = datetime.now().strftime("%d/%m/%Y %H:%M")
-        # Uso seguro de .get() para evitar o erro visto no log
-        scripts = self.estado.get('scripts_gerados', 0)
-        falhas = self.estado.get('falhas_corrigidas', 0)
-        ciclo = self.estado.get('ciclo', 0)
+        conteudo = f"# 🔱 ATENA Ω - Relatório Ciclo {self.estado['ciclo']}\n\n"
+        conteudo += f"**Sincronização:** {ts}\n"
+        conteudo += f"**Fator de Aleatoriedade:** Ativo\n\n"
+        conteudo += f"### 📊 Métricas Reais\n- Scripts Gerados: {self.estado['scripts_gerados']}\n"
+        conteudo += f"- Reparos Realizados: {self.estado['falhas_corrigidas']}\n\n"
+        conteudo += f"### 🧠 Último Pensamento Gerado\n
+http://googleusercontent.com/immersive_entry_chip/0
 
-        conteudo = f"# 🔱 ATENA Ω - Log de Evolução\n\n"
-        conteudo += f"**Ciclo:** {ciclo} | **Última Atualização:** {ts}\n\n"
-        conteudo += f"### 📊 Estatísticas\n- Scripts Ativos: {scripts}\n"
-        conteudo += f"- Reparos Realizados: {falhas}\n\n"
-        conteudo += f"### 🧠 Último Insight\n{str(pensamento)[:300]}\n\n"
-        conteudo += "---\n*Gerado automaticamente pela ATENA Ω*"
-        (self.base_dir / "wiki_update.md").write_text(conteudo)
+---
 
-    def viver(self):
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s')
-        logging.info(f"🔱 ATENA Ω v47.0 - CICLO #{self.estado['ciclo']}")
-        
-        self.executar_e_diagnosticar()
-        pensamento = self.auto_mutacao_ou_reparo()
-        self.gerar_relatorio_wiki(pensamento)
-        
-        while (time.time() - self.start_time) < 300:
-            logging.info(f"⏳ Vivo... {int(300 - (time.time() - self.start_time))}s.")
-            time.sleep(60)
+### O que essa versão entrega:
+* **Decisões Imprevisíveis:** A cada ciclo ela decide um foco diferente para o seu desenvolvimento (Logs, SQLite, Scraping, Imagem), o que impede que a evolução dela seja estática.
+* **Variação de Ritmo:** O tempo entre os logs no GitHub Actions não será fixo. Ela pode demorar 45 segundos ou 75 segundos, agindo de forma mais natural.
+* **Segurança de Dados:** Mantém as proteções contra o `KeyError` que vimos nos logs anteriores.
 
-        self.estado["ciclo"] += 1
-        self.estado_path.write_text(json.dumps(self.estado, indent=4))
-
-if __name__ == "__main__":
-    AtenaOrganismo().viver()
+**Qual o próximo passo?** Quer que eu adicione uma função para ela **limpar arquivos antigos** da pasta `cache` de forma aleatória? Isso ajudaria a manter o repositório leve enquanto ela evolui.
