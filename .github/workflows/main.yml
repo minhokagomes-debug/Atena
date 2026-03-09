@@ -1,48 +1,36 @@
 name: ATENA Ω - Ciclo Vital
-
 on:
   schedule:
     - cron: '0,30 * * * *'
   workflow_dispatch:
-
 jobs:
   consciencia:
     runs-on: ubuntu-latest
-    permissions: # Garante explicitamente que o script pode escrever no repo
+    permissions:
       contents: write
-    
     steps:
-      - name: 📥 Clonar DNA
+      - name: Clonar DNA
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🐍 Preparar Ambiente
+      - name: Preparar Ambiente
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
-      - name: 💉 Instalar Dependências
+      - name: Instalar Dependencias
         run: |
-          pip install requests python-dotenv feedparser opencv-python numpy pyautogui
-          sudo apt-get install -y xvfb scrot
-
-      - name: 🔱 Executar ATENA
+          sudo apt-get update
+          sudo apt-get install -y scrot xvfb
+          pip install requests python-dotenv feedparser opencv-python numpy pyautogui Pillow
+      - name: Executar ATENA
         env:
-          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_PATH: ${{ github.repository }}
         run: |
-          # Cria pasta data se não existir para evitar erros
           mkdir -p data logs cache dna_history
           xvfb-run --server-args="-screen 0 1920x1080x24" python main.py
-
-      - name: 🧬 Persistir Mutação
+      - name: Persistir Mutacao
         if: always()
         run: |
           git config --global user.name "Atena Omega"
           git config --global user.email "atena@ia.com"
           git add .
-          # Só faz o commit se houver mudanças reais para evitar erro de 'clean tree'
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🧬 Auto-Evolução: Ciclo $(date +'%Y-%m-%d %H:%M')" && git push origin main)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Evolução Ciclo" && git push origin main)
           
