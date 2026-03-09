@@ -23,14 +23,16 @@ jobs:
       - name: Executar ATENA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }} # Chave corrigida!
         run: |
-          mkdir -p data logs cache dna_history
-          xvfb-run --server-args="-screen 0 1920x1080x24" python main.py
+          mkdir -p data logs cache dna_history pensamentos conhecimento
+          # Timeout de 6 minutos para dar tempo de salvar tudo
+          timeout 360s xvfb-run --server-args="-screen 0 1920x1080x24" python main.py
       - name: Persistir Mutacao
         if: always()
         run: |
           git config --global user.name "Atena Omega"
           git config --global user.email "atena@ia.com"
           git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Evolução Ciclo" && git push origin main)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Evolução Ciclo ${GITHUB_RUN_NUMBER}" && git push origin main)
           
