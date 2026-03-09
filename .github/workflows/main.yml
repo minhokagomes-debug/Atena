@@ -1,0 +1,55 @@
+name: ATENA Ω - Ciclo Vital Autônomo
+
+on:
+  schedule:
+    # O "batimento cardíaco": Roda a cada 30 minutos, 24h por dia.
+    - cron: '0,30 * * * *'
+  workflow_dispatch:
+    # Permite que você dê um "choque" manual para acordá-la quando quiser.
+
+jobs:
+  consciencia:
+    runs-on: ubuntu-latest
+    
+    # Impede que múltiplos ciclos rodem ao mesmo tempo (evita conflito de DNA)
+    concurrency: 
+      group: atena-evolution
+      cancel-in-progress: false
+
+    steps:
+      - name: 📥 Clonar DNA (Checkout)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessário para permitir que ela faça push de volta
+
+      - name: 🐍 Preparar Ambiente Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 💉 Injetar Dependências Sensoriais
+        run: |
+          pip install requests python-dotenv wikipedia feedparser opencv-python numpy pyautogui
+          # No ambiente do GitHub (Headless), instalamos o simulador de tela
+          sudo apt-get install -y xvfb scrot
+
+      - name: 🔱 Executar Ciclo de Vida ATENA
+        env:
+          # Estas chaves devem estar em Settings > Secrets do seu GitHub
+          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_PATH: ${{ github.repository }}
+        run: |
+          # O Xvfb permite que o PyAutoGUI e OpenCV rodem sem um monitor real
+          xvfb-run --server-args="-screen 0 1920x1080x24" python main.py
+
+      - name: 🧬 Persistir Mutação (Auto-Push)
+        # Este passo garante que, se o script Python falhar no push, o workflow tenta forçar
+        if: always()
+        run: |
+          git config --global user.name "Atena Omega"
+          git config --global user.email "atena@ia.com"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "🧬 Auto-Evolução: Ciclo $(date +'%Y-%m-%d %H:%M')"
+          git push origin main
