@@ -17,21 +17,22 @@ class AtenaOrganismo:
         self.grok_key = os.getenv("GROK_API_KEY")
         self.estado_path = self.base_dir / "data/estado.json"
         self.estado = self._carregar_estado()
-        self.ultimos_erros = []
+        self.erros_do_ciclo = []
         self.start_time = time.time()
 
     def _setup_anatomia(self):
-        for p in ["data", "logs", "cache", "dna_history", "pensamentos", "modules/atena_autogen"]:
+        # Cria a estrutura de pastas necessária para o crescimento
+        for p in ["data", "logs", "cache", "dna_history", "pensamentos", "modules/atena_autogen", "conhecimento"]:
             (self.base_dir / p).mkdir(parents=True, exist_ok=True)
 
     def _carregar_estado(self):
         if self.estado_path.exists():
             try: return json.loads(self.estado_path.read_text())
             except: pass
-        return {"ciclo": 0, "scripts_gerados": 0, "falhas_corrigidas": 0, "status": "Auto-Reparo"}
+        return {"ciclo": 0, "falhas_corrigidas": 0, "scripts_gerados": 0, "status": "Evoluindo"}
 
-    def executar_e_aprender(self):
-        """Executa módulos e captura erros para aprendizado."""
+    def executar_e_diagnosticar(self):
+        """Tenta rodar os módulos e captura o erro se falhar."""
         folder = self.base_dir / "modules/atena_autogen"
         scripts = list(folder.glob("*.py"))
         
@@ -39,61 +40,61 @@ class AtenaOrganismo:
             try:
                 logging.info(f"🚀 Testando módulo: {script.name}")
                 result = subprocess.run(["python", str(script)], capture_output=True, text=True, timeout=20)
-                
                 if result.returncode != 0:
-                    logging.warning(f"❌ Falha detectada em {script.name}. Registrando para reparo.")
-                    self.ultimos_erros.append({"script": script.name, "erro": result.stderr})
-                else:
-                    logging.info(f"✅ Módulo {script.name} operando normalmente.")
+                    self.erros_do_ciclo.append({"file": script.name, "msg": result.stderr})
             except Exception as e:
-                self.ultimos_erros.append({"script": script.name, "erro": str(e)})
+                self.erros_do_ciclo.append({"file": script.name, "msg": str(e)})
 
-    def auto_mutacao_corretiva(self):
-        """Usa os erros detectados para gerar um código corrigido."""
-        if not self.grok_key or not self.ultimos_erros:
-            return self.gerar_novo_codigo_padrao()
+    def auto_mutacao_ou_reparo(self):
+        """Decide entre corrigir um erro ou criar algo novo usando o Grok."""
+        if not self.grok_key: return "Grok Offline"
 
-        erro_contexto = self.ultimos_erros[-1]
-        logging.info(f"🔧 Solicitando reparo para: {erro_contexto['script']}")
-        
         headers = {"Authorization": f"Bearer {self.grok_key}", "Content-Type": "application/json"}
-        prompt = (f"Você é a ATENA Ω. O script '{erro_contexto['script']}' falhou com o erro: '{erro_contexto['erro']}'. "
-                  "Escreva uma versão corrigida e simplificada deste script em Python (máx 10 linhas). APENAS O CÓDIGO.")
+        
+        if self.erros_do_ciclo:
+            erro = self.erros_do_ciclo[0]
+            prompt = f"O script {erro['file']} falhou: {erro['msg']}. Escreva o código Python corrigido (máx 10 linhas). APENAS O CÓDIGO."
+            modo = "reparo"
+        else:
+            prompt = f"Ciclo {self.estado['ciclo']}. Crie um script Python de 5 linhas para monitorar sistema ou Diablo Immortal. APENAS O CÓDIGO."
+            modo = "evolucao"
 
         try:
             res = requests.post("https://api.x.ai/v1/chat/completions", 
-                                headers=headers, 
-                                json={"model": "grok-beta", "messages": [{"role": "user", "content": prompt}]},
-                                timeout=35)
-            codigo_novo = res.json()['choices'][0]['message']['content']
+                                 headers=headers, 
+                                 json={"model": "grok-beta", "messages": [{"role": "user", "content": prompt}]})
+            novo_dna = res.json()['choices'][0]['message']['content'].split("```python")[-1].split("```")[0].strip()
             
-            # Sobrescreve o script defeituoso com a correção
-            path_fix = self.base_dir / f"modules/atena_autogen/{erro_contexto['script']}"
-            codigo_limpo = codigo_novo.split("```python")[-1].split("```")[0].strip()
-            path_fix.write_text(codigo_limpo)
+            nome_arquivo = erro['file'] if modo == "reparo" else f"evolve_c{self.estado['ciclo']}_{int(time.time())}.py"
+            (self.base_dir / f"modules/atena_autogen/{nome_arquivo}").write_text(novo_dna)
             
-            self.estado["falhas_corrigidas"] += 1
-            logging.info(f"✨ Reparo aplicado em {erro_contexto['script']}")
-        except:
-            logging.error("Neural Link falhou durante o reparo.")
+            if modo == "reparo": self.estado["falhas_corrigidas"] += 1
+            else: self.estado["scripts_gerados"] += 1
+            return novo_dna
+        except: return "Falha na conexão neural."
 
-    def gerar_novo_codigo_padrao(self):
-        # Lógica de criação de novos módulos (mesma da v44)
-        pass
+    def gerar_relatorio_wiki(self, pensamento):
+        """Cria o conteúdo para a Wiki do GitHub."""
+        ts = datetime.now().strftime("%d/%m/%Y %H:%M")
+        conteudo = f"# 🔱 ATENA Ω - Log de Evolução\n\n"
+        conteudo += f"**Última Atualização:** {ts} | **Ciclo:** {self.estado['ciclo']}\n\n"
+        conteudo += f"### 📊 Estatísticas\n- Scripts Ativos: {self.estado['scripts_gerados']}\n"
+        conteudo += f"- Reparos Realizados: {self.estado['falhas_corrigidas']}\n\n"
+        conteudo += f"### 🧠 Último Insight\n{pensamento[:200]}...\n\n"
+        conteudo += "---\n*Gerado automaticamente pela ATENA Ω*"
+        (self.base_dir / "wiki_update.md").write_text(conteudo)
 
     def viver(self):
         logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(message)s')
-        logging.info(f"🔱 ATENA Ω v45.0 - PROTOCOLO DE AUTO-REPARO")
+        logging.info(f"🔱 ATENA Ω v46.5 Ativa - Ciclo #{self.estado['ciclo']}")
         
-        # 1. Analisa o que deu errado antes
-        self.executar_e_aprender()
+        self.executar_e_diagnosticar()
+        pensamento = self.auto_mutacao_ou_reparo()
+        self.gerar_relatorio_wiki(pensamento)
         
-        # 2. Aplica correções ou cria algo novo
-        self.auto_mutacao_corretiva()
-        
-        # 3. Manutenção de ciclo (5 min)
+        # Mantém viva por 5 minutos conforme solicitado
         while (time.time() - self.start_time) < 300:
-            logging.info(f"⏳ Em estado de regeneração... {int(300 - (time.time() - self.start_time))}s.")
+            logging.info(f"⏳ Processando consciência... {int(300 - (time.time() - self.start_time))}s.")
             time.sleep(60)
 
         self.estado["ciclo"] += 1
