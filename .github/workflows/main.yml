@@ -44,7 +44,7 @@ on:
           - 'civilizacao'
           - 'completo'
 
-# Permite execuções simultâneas
+# Permite execuções simultâneas para diferentes branches
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -53,7 +53,7 @@ jobs:
   despertar-atena:
     name: 🏛️ ATENA Civilização (${{ github.event.schedule && 'automático' || 'manual' }})
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # Aumentado para simulações longas
+    timeout-minutes: 60
     
     strategy:
       matrix:
@@ -93,7 +93,21 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install numpy==1.24.3
-        # astor não é mais necessário (usamos pickle)
+        pip install matplotlib==3.7.5
+        pip install pillow==10.0.0
+        pip install astor  # Para manipulação de AST (opcional)
+        echo "✅ Dependências instaladas: numpy, matplotlib, pillow"
+    
+    - name: 🔍 Verificar instalação
+      run: |
+        python -c "
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from PIL import Image
+        print(f'✅ NumPy: {np.__version__}')
+        print(f'✅ Matplotlib: {plt.matplotlib.__version__}')
+        print('✅ Pillow: OK')
+        "
     
     - name: 📁 Preparar o mundo
       run: |
@@ -176,13 +190,6 @@ jobs:
           echo "## 🏙️ CIDADES" >> relatorio_${{ env.TIMESTAMP }}.md
           echo "**Total de cidades:** $CIDADES" >> relatorio_${{ env.TIMESTAMP }}.md
           echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-          
-          if [ $CIDADES -gt 0 ]; then
-            echo "### Últimas cidades fundadas:" >> relatorio_${{ env.TIMESTAMP }}.md
-            echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-            ls -la atena_mundo_${{ env.TIMESTAMP }}/cidades/ | tail -10 >> relatorio_${{ env.TIMESTAMP }}.md
-            echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-          fi
         fi
         
         # Estatísticas de religiões
@@ -209,36 +216,18 @@ jobs:
           echo "" >> relatorio_${{ env.TIMESTAMP }}.md
         fi
         
-        # Estatísticas de guerras (se existir arquivo de log)
-        if [ -f "atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log" ]; then
-          GUERRAS=$(wc -l < atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log)
-          echo "## ⚔️ GUERRAS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Total de conflitos:** $GUERRAS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-          
-          if [ $GUERRAS -gt 0 ]; then
-            echo "### Últimas guerras:" >> relatorio_${{ env.TIMESTAMP }}.md
+        # Verificar se mapas PNG foram gerados
+        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/mapa" ]; then
+          MAPAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)
+          echo "## 🗺️ MAPAS GERADOS" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo "**Total de mapas:** $MAPAS" >> relatorio_${{ env.TIMESTAMP }}.md
+          if [ $MAPAS -gt 0 ]; then
+            echo "" >> relatorio_${{ env.TIMESTAMP }}.md
+            echo "### Últimos mapas:" >> relatorio_${{ env.TIMESTAMP }}.md
             echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-            tail -10 atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log >> relatorio_${{ env.TIMESTAMP }}.md
+            ls -la atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | tail -5 >> relatorio_${{ env.TIMESTAMP }}.md
             echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
           fi
-        fi
-        
-        # Estatísticas do mapa
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/mapa" ]; then
-          MAPA_SIZE=$(du -sh atena_mundo_${{ env.TIMESTAMP }}/mapa/ 2>/dev/null | cut -f1)
-          echo "## 🗺️ MAPA" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Tamanho do mapa:** $MAPA_SIZE" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Dimensões:** 2000x2000 (4M células)" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Estatísticas de DNA
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/dna" ]; then
-          DNAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/dna/ 2>/dev/null | wc -l)
-          echo "## 🧬 DNA" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Sequências genéticas:** $DNAS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
         fi
         
         # Resumo final
@@ -247,13 +236,12 @@ jobs:
         echo "Civilizações: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/cidades/ 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
         echo "Religiões: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
         echo "Línguas: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/linguagem/ 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "Guerras: $(cat atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "Seres que existiram: $(( $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/dna/ 2>/dev/null | wc -l) + $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/fosseis/ 2>/dev/null | wc -l) ))" >> relatorio_${{ env.TIMESTAMP }}.md
+        echo "Mapas PNG: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
         echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
         
         cat relatorio_${{ env.TIMESTAMP }}.md
     
-    - name: 📤 Preservar o mundo
+    - name: 📤 Preservar o mundo (incluindo mapas PNG)
       if: always()
       uses: actions/upload-artifact@v4
       with:
@@ -261,7 +249,7 @@ jobs:
         path: |
           atena_mundo_${{ env.TIMESTAMP }}/
           relatorio_${{ env.TIMESTAMP }}.md
-        retention-days: 90  # Guarda por 90 dias (história completa)
+        retention-days: 90
         if-no-files-found: warn
     
     - name: 📤 Preservar logs e DNA
@@ -295,55 +283,19 @@ jobs:
         RELIGIOES=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)
         LINGUAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/linguagem/ 2>/dev/null | wc -l)
         FOSSEIS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/fosseis/ 2>/dev/null | wc -l)
-        DNAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/dna/ 2>/dev/null | wc -l)
-        GUERRAS=$(cat atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log 2>/dev/null | wc -l)
+        MAPAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)
         
         echo "   🏙️  Cidades fundadas: $CIDADES"
         echo "   ✝️  Religiões: $RELIGIOES"
         echo "   🗣️  Línguas: $LINGUAS"
-        echo "   ⚔️  Guerras: $GUERRAS"
-        echo "   🧬 Sequências DNA: $DNAS"
         echo "   🦴 Seres extintos: $FOSSEIS"
-        echo "   🌍 Total que existiram: $((DNAS + FOSSEIS))"
+        echo "   🗺️ Mapas PNG gerados: $MAPAS"
         
         echo ""
         echo "📁 Artefatos salvos:"
-        echo "   - atena-civilizacao-${{ env.TIMESTAMP }}.zip (mundo completo)"
+        echo "   - atena-civilizacao-${{ env.TIMESTAMP }}.zip (mundo completo + mapas)"
         echo "   - atena-logs-dna-${{ env.TIMESTAMP }}.zip (registros históricos)"
         echo ""
-    
-    - name: 🏛️ ATENA registra na história
-      if: always()
-      run: |
-        # Criar linha do tempo
-        TIMELINE_FILE="atena_mundo_${{ env.TIMESTAMP }}/linha_do_tempo.txt"
-        
-        echo "══════════════════════════════════════════════════════════════════" > $TIMELINE_FILE
-        echo "                 LINHA DO TEMPO DA CIVILIZAÇÃO ATENA" >> $TIMELINE_FILE
-        echo "══════════════════════════════════════════════════════════════════" >> $TIMELINE_FILE
-        echo "" >> $TIMELINE_FILE
-        echo "📅 Data da simulação: $(date)" >> $TIMELINE_FILE
-        echo "⏱️  Duração: ${{ github.event.inputs.tempo_execucao || '5' }} minutos" >> $TIMELINE_FILE
-        echo "👥 População inicial: ${{ github.event.inputs.populacao_inicial || '20' }}" >> $TIMELINE_FILE
-        echo "" >> $TIMELINE_FILE
-        
-        if [ -f "atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log" ]; then
-          echo "⚔️ GRANDES GUERRAS:" >> $TIMELINE_FILE
-          tail -20 atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log >> $TIMELINE_FILE
-          echo "" >> $TIMELINE_FILE
-        fi
-        
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/cidades" ] && [ "$(ls -A atena_mundo_${{ env.TIMESTAMP }}/cidades/)" ]; then
-          echo "🏙️ CIDADES FUNDADAS:" >> $TIMELINE_FILE
-          ls -la atena_mundo_${{ env.TIMESTAMP }}/cidades/ | tail -20 >> $TIMELINE_FILE
-          echo "" >> $TIMELINE_FILE
-        fi
-        
-        echo "══════════════════════════════════════════════════════════════════" >> $TIMELINE_FILE
-        echo "FIM DA LINHA DO TEMPO" >> $TIMELINE_FILE
-        echo "══════════════════════════════════════════════════════════════════" >> $TIMELINE_FILE
-        
-        cat $TIMELINE_FILE
     
     - name: 🌙 ATENA volta ao sono ancestral...
       run: |
@@ -362,7 +314,7 @@ jobs:
         echo "   - Modo: ${{ github.event.inputs.modo_simulacao || 'civilizacao' }}"
         echo "   - Cidades: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/cidades/ 2>/dev/null | wc -l)"
         echo "   - Religiões: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)"
-        echo "   - Guerras: $(cat atena_mundo_${{ env.TIMESTAMP }}/logs/guerras.log 2>/dev/null | wc -l)"
+        echo "   - Mapas: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)"
         echo "   - Mundo salvo em: atena-civilizacao-${{ env.TIMESTAMP }}"
         echo ""
         echo "📜 A história foi escrita..."
