@@ -5,28 +5,38 @@ on:
     branches: [ "main", "master", "develop" ]
   pull_request:
     branches: [ "main" ]
+  schedule:
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 env:
   PYTHON_VERSION: '3.10'
-  VENV_DIR: 'venv'
+  PIP_CACHE_DIR: ~/.cache/pip
 
 jobs:
-  executar-atena:
-    name: 🧠 Executar ATENA Ω
+  testar-instalacao:
+    name: 🧪 Testar Instalação
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     
     steps:
-    - name: 📥 Checkout do código
+    - name: 📥 Checkout
       uses: actions/checkout@v4
     
-    - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+    - name: 🐍 Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: 🔧 Instalar dependências do sistema
+    - name: 📦 Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.PIP_CACHE_DIR }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: 🔧 Instalar Dependências do Sistema
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -34,45 +44,22 @@ jobs:
           cmake \
           libopenblas-dev \
           libsqlite3-dev \
-          sqlite3 \
-          libssl-dev \
-          libffi-dev
+          sqlite3
     
-    - name: 📦 Criar ambiente virtual
+    - name: 📦 Instalar Dependências Python
       run: |
-        python -m venv ${{ env.VENV_DIR }}
-        echo "${{ env.VENV_DIR }}/bin" >> $GITHUB_PATH
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir -r requirements.txt
     
-    - name: 📦 Atualizar pip e ferramentas base
+    - name: 🔍 Verificar Instalação
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install --upgrade cython
-    
-    - name: 📦 Instalar dependências essenciais (UMA A UMA)
-      run: |
-        # Instalar aiosqlite primeiro (crítico)
-        pip install aiosqlite==0.19.0
-        
-        # Instalar numpy antes de pandas
-        pip install numpy==1.24.3
-        
-        # Instalar resto em lote
-        pip install aiohttp==3.9.5 pandas==2.0.3 python-dateutil==2.8.2
-        pip install transformers==4.35.2 torch==2.1.0 sentence-transformers==2.2.2 scikit-learn==1.3.2
-        pip install chromadb==0.4.22 faiss-cpu==1.7.4
-        pip install networkx==3.1 matplotlib==3.7.5 seaborn==0.13.0
-        pip install python-dotenv==1.0.0 tqdm==4.66.1 colorama==0.4.6 requests==2.31.0 pyyaml==6.0.1
-        pip install orjson==3.9.10 msgpack==1.0.7 cloudpickle==3.0.0
-    
-    - name: 🔍 Verificar instalação
-      run: |
-        echo "🔍 Verificando módulos instalados:"
         python -c "
         import sys
-        print(f'Python: {sys.version}')
+        print(f'Python {sys.version}')
         
-        modules = ['aiosqlite', 'aiohttp', 'numpy', 'pandas', 'transformers', 'torch', 'chromadb', 'faiss']
-        for m in modules:
+        # Verificar módulos essenciais
+        modulos = ['aiosqlite', 'aiohttp', 'numpy', 'pandas', 'transformers']
+        for m in modulos:
             try:
                 __import__(m)
                 print(f'✅ {m}')
@@ -80,98 +67,69 @@ jobs:
                 print(f'❌ {m}: {e}')
                 sys.exit(1)
         "
-        echo "✅ Todos os módulos essenciais instalados!"
     
-    - name: 📁 Criar diretórios de dados
+    - name: ✅ Instalação OK
+      run: echo "✅ Todas as dependências instaladas com sucesso!"
+
+  executar-atena:
+    name: 🧠 Executar ATENA
+    runs-on: ubuntu-latest
+    needs: testar-instalacao
+    timeout-minutes: 30
+    if: success()
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+    
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: 📦 Restaurar Cache
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.PIP_CACHE_DIR }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+    
+    - name: 📁 Preparar Diretórios
       run: |
-        mkdir -p data backups exports logs chromadb_data faiss_index models cache
-        ls -la
+        mkdir -p data backups exports logs chromadb_data faiss_index
+        chmod -R 777 data backups exports logs
     
     - name: 🧠 Executar ATENA
       run: |
         echo "🚀 Iniciando ATENA Ω..."
-        
-        # Criar um script de teste mínimo para verificar se a ATENA funciona
-        cat > test_atena.py << 'EOF'
-import asyncio
-import sys
-
-async def test_imports():
-    """Testa imports críticos"""
-    try:
-        import aiosqlite
-        import aiohttp
-        import numpy as np
-        import pandas as pd
-        import transformers
-        import torch
-        import chromadb
-        import faiss
-        import networkx as nx
-        
-        print("✅ Todos os imports funcionaram!")
-        return True
-    except ImportError as e:
-        print(f"❌ Import falhou: {e}")
-        return False
-
-async def main():
-    print("🧪 Testando ATENA...")
-    imports_ok = await test_imports()
+        timeout 25m python main.py --ciclo-automatico || echo "⚠️ Ciclo finalizado"
     
-    if imports_ok:
-        print("✨ ATENA está pronta para execução!")
-        
-        # Aqui você pode adicionar mais testes
-        print("📊 Versões:")
-        import numpy as np
-        import pandas as pd
-        import transformers
-        import torch
-        
-        print(f"  NumPy: {np.__version__}")
-        print(f"  Pandas: {pd.__version__}")
-        print(f"  Transformers: {transformers.__version__}")
-        print(f"  PyTorch: {torch.__version__}")
-        
-        return 0
-    else:
-        print("❌ ATENA não está pronta")
-        return 1
-
-if __name__ == "__main__":
-    sys.exit(asyncio.run(main()))
-EOF
-        
-        # Executar teste
-        python test_atena.py
-        
-        # Se o teste passar, executar ATENA real
-        if [ $? -eq 0 ]; then
-          echo ""
-          echo "🚀 Executando ATENA real por 1 minuto (modo teste)..."
-          timeout 1m python main.py --test-mode || echo "✅ Teste concluído"
-        fi
-    
-    - name: 💾 Salvar logs
+    - name: 💾 Backup do Estado
       if: always()
       run: |
-        mkdir -p artifacts
-        cp -r logs/* artifacts/ 2>/dev/null || true
-        cp test_atena.py artifacts/ 2>/dev/null || true
+        TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
         
-        # Listar o que foi gerado
-        echo "📁 Arquivos gerados:"
-        find artifacts -type f 2>/dev/null || echo "Nenhum arquivo encontrado"
+        # Backup dos dados importantes
+        if [ -d "data" ] && [ "$(ls -A data)" ]; then
+          tar -czf "backups/atena_state_${TIMESTAMP}.tar.gz" \
+            data/ exports/ logs/ \
+            --exclude="*.tmp" \
+            --exclude="*.lock" \
+            2>/dev/null || true
+          echo "✅ Backup criado: backups/atena_state_${TIMESTAMP}.tar.gz"
+        fi
+        
+        # Limpar backups antigos (manter últimos 5)
+        cd backups && ls -t atena_state_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
     
-    - name: 📤 Upload de artefatos
+    - name: 📤 Upload de Logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: atena-logs-${{ github.run_id }}
-        path: artifacts/
+        path: |
+          logs/*.log
+          exports/*.json
+          exports/*.png
+          backups/atena_state_*.tar.gz
         retention-days: 7
         if-no-files-found: ignore
-    
-    - name: ✅ Concluído
-      run: echo "✅ Ciclo da ATENA concluído com sucesso!"
