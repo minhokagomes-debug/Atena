@@ -2,14 +2,13 @@ name: ATENA Ω - Ciclo de Vida
 
 on:
   schedule:
-    - cron: '0,30 * * * *'  # Executa no minuto 0 e no minuto 30 de cada hora
+    - cron: '0,30 * * * *'  # Executa a cada 30 minutos
   workflow_dispatch:
 
 jobs:
   evolve:
     runs-on: ubuntu-latest
-    # Timeout de segurança para garantir que o job não exceda os 5-7 min
-    timeout-minutes: 10 
+    timeout-minutes: 15 # Tempo limite total do Job
     
     steps:
     - name: Clonar repositório
@@ -22,22 +21,30 @@ jobs:
         
     - name: Instalar dependências
       run: |
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip
+        # Instala do arquivo e também as ferramentas de evolução
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install black astor 
         
     - name: Executar ATENA
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # O comando timeout garante que o python feche após 5 minutos
-      # permitindo que o workflow siga para o commit
-      run: timeout 5m python main.py || echo "Ciclo de 5min finalizado."
+      # Roda por 5 minutos e depois encerra para salvar o progresso
+      run: |
+        timeout 5m python main.py || echo "Ciclo de 5min finalizado ou interrompido."
       
     - name: Commit e push das mudanças
-      if: always() # Garante que salve as mudanças mesmo se o timeout interromper
+      if: always() # Importante: executa mesmo se o script der erro ou timeout
       run: |
         git config --global user.name "ATENA Ω"
         git config --global user.email "atena@evolution.ai"
         git add .
-        # Só faz commit se houver mudanças reais no código
-        git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Evolução automática - Ciclo $(date +'%Y%m%d%H%M%S')" && git push)
+        # Verifica se houve mudanças antes de tentar o commit
+        if ! git diff --cached --quiet; then
+          git commit -m "🤖 Evolução automática - Ciclo $(date +'%Y%m%d%H%M%S')"
+          git push
+        else
+          echo "Nenhuma mudança estrutural detectada neste ciclo."
+        fi
         
