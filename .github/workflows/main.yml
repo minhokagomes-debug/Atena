@@ -2,83 +2,49 @@ name: ATENA Ω - Ciclo de Vida
 
 on:
   schedule:
-    - cron: '0,30 * * * *'
+    - cron: '0,30 * * * *'  # Executa a cada 30 minutos
   workflow_dispatch:
 
 jobs:
   evolve:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 15 # Tempo limite total do Job
     
     steps:
     - name: Clonar repositório
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Verificar arquivos
-      run: |
-        echo "📁 Conteúdo do repositório:"
-        ls -la
-        
-        echo -e "\n📝 Arquivos Python encontrados:"
-        find . -name "*.py" -type f || echo "Nenhum arquivo .py encontrado"
-    
+      
     - name: Configurar Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-    
+        
     - name: Instalar dependências
       run: |
         python -m pip install --upgrade pip
-        pip install aiohttp redis tenacity numpy scikit-learn psutil black
-    
-    - name: Criar main.py se não existir
-      run: |
-        if [ ! -f "main.py" ]; then
-          echo "📝 Criando main.py básico..."
-          cat > main.py << 'EOF'
-import asyncio
-import logging
-from datetime import datetime
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-async def main():
-    print("🚀 ATENA Ω iniciada")
-    logger.info(f"Executando em {datetime.now()}")
-    await asyncio.sleep(5)
-    print("✅ Ciclo concluído")
-    
-    with open("estado.txt", "w") as f:
-        f.write(f"Executado em {datetime.now()}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-EOF
-          echo "✅ main.py criado"
-        fi
-    
+        # Instala do arquivo e também as ferramentas de evolução
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install black astor 
+        
     - name: Executar ATENA
+      env:
+        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Roda por 5 minutos e depois encerra para salvar o progresso
       run: |
-        echo "🚀 Executando ATENA Ω..."
-        python main.py
-        echo "✅ Execução concluída"
-    
-    - name: Commit e push
+        timeout 5m python main.py || echo "Ciclo de 5min finalizado ou interrompido."
+      
+    - name: Commit e push das mudanças
+      if: always() # Importante: executa mesmo se o script der erro ou timeout
       run: |
         git config --global user.name "ATENA Ω"
         git config --global user.email "atena@evolution.ai"
-        
         git add .
-        
-        if git diff --cached --quiet; then
-          echo "📝 Sem mudanças para commit"
-        else
-          echo "📦 Mudanças detectadas"
-          git commit -m "🤖 Evolução automática $(date +'%Y%m%d%H%M%S')"
+        # Verifica se houve mudanças antes de tentar o commit
+        if ! git diff --cached --quiet; then
+          git commit -m "🤖 Evolução automática - Ciclo $(date +'%Y%m%d%H%M%S')"
           git push
+        else
+          echo "Nenhuma mudança estrutural detectada neste ciclo."
         fi
+        
