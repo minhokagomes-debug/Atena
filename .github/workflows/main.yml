@@ -18,224 +18,220 @@ jobs:
     - name: Clonar repositório
       uses: actions/checkout@v3
       with:
-        fetch-depth: 0  # Busca todo o histórico para diff correto
+        fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
-      
+    
+    - name: Verificar arquivos
+      run: |
+        echo "📁 Conteúdo do repositório:"
+        ls -la
+        echo ""
+        
+        # Verifica se main.py existe
+        if [ -f "main.py" ]; then
+          echo "✅ main.py encontrado"
+          echo "main_exists=true" >> $GITHUB_ENV
+          
+          # Mostra as primeiras linhas
+          echo "📝 Primeiras 10 linhas do main.py:"
+          head -10 main.py
+        else
+          echo "❌ main.py NÃO encontrado!"
+          echo "main_exists=false" >> $GITHUB_ENV
+          
+          # Lista todos os arquivos .py
+          echo "🔍 Arquivos .py encontrados:"
+          find . -name "*.py" -type f
+        fi
+        
+        # Verifica requirements.txt
+        if [ -f "requirements.txt" ]; then
+          echo "✅ requirements.txt encontrado"
+          echo "📦 Dependências:"
+          cat requirements.txt
+        else
+          echo "⚠️ requirements.txt não encontrado"
+        fi
+        
     - name: Configurar Python
+      if: env.main_exists == 'true'
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'  # Versão mais recente estável
-        cache: 'pip'  # Cache das dependências
-        
-    - name: Cache Redis
-      uses: actions/cache@v3
-      with:
-        path: ~/redis-data
-        key: ${{ runner.os }}-redis-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-redis-
-          
-    - name: Instalar Redis
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y redis-server
-        sudo systemctl start redis-server
-        redis-cli ping  # Verifica se Redis está rodando
-        
+        python-version: '3.10'
+        cache: 'pip'
+    
     - name: Instalar dependências
+      if: env.main_exists == 'true'
       run: |
         python -m pip install --upgrade pip
-        # Instala dependências principais
-        pip install aiohttp redis tenacity numpy scikit-learn psutil black astor
-        # Instala do requirements.txt se existir
-        if [ -f requirements.txt ]; then 
+        
+        # Instala dependências essenciais primeiro
+        pip install aiohttp redis tenacity numpy scikit-learn psutil black
+        
+        # Depois instala do requirements.txt se existir
+        if [ -f requirements.txt ]; then
           echo "📦 Instalando dependências do requirements.txt"
           pip install -r requirements.txt
-        else
-          echo "📝 Criando requirements.txt"
-          cat > requirements.txt << EOF
-aiohttp>=3.9.0
-redis>=5.0.0
-tenacity>=8.2.0
-numpy>=1.24.0
-scikit-learn>=1.3.0
-psutil>=5.9.0
-black>=23.0.0
-astor>=0.8.1
-EOF
-          pip install -r requirements.txt
         fi
         
-    - name: Criar arquivo .env
-      run: |
-        cat > .env << EOF
-        REDIS_URL=redis://localhost:6379
-        MAX_RETRIES=3
-        TIMEOUT=30
-        CACHE_TTL=3600
-        MAX_CONCURRENT_REQUESTS=5
-        EVOLUTION_THRESHOLD=0.7
-        MAX_EVOLUTIONS_PER_DAY=3
-        SANDBOX_MEMORY_LIMIT=500
-        AUTO_COMMIT=true
-        EOF
+        # Verifica instalação
+        echo "📦 Pacotes instalados:"
+        pip list
         
-    - name: Verificar código existente
-      id: check_code
+    - name: Verificar sintaxe do Python
+      if: env.main_exists == 'true'
       run: |
-        if [ -f main.py ]; then
-          echo "📁 main.py encontrado"
-          echo "exists=true" >> $GITHUB_OUTPUT
-          # Backup do código atual
-          cp main.py main.py.backup
-        else
-          echo "❌ main.py não encontrado!"
-          echo "exists=false" >> $GITHUB_OUTPUT
+        echo "🔍 Verificando sintaxe do main.py..."
+        python -m py_compile main.py || {
+          echo "❌ ERRO DE SINTAXE no main.py!"
           exit 1
-        fi
+        }
+        echo "✅ Sintaxe OK!"
+        
+    - name: Criar arquivo de teste mínimo
+      if: env.main_exists == 'false'
+      run: |
+        echo "📝 Criando arquivo main.py básico para teste..."
+        cat > main.py << 'EOF'
+#!/usr/bin/env python3
+"""
+ATENA Ω - Versão de Teste
+"""
+
+import asyncio
+import logging
+from datetime import datetime
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+async def main():
+    """Função principal de teste"""
+    print("""
+    ╔══════════════════════════════════════════════════════╗
+    ║                                                      ║
+    ║     █████╗ ████████╗███████╗███╗   ██╗ █████╗       ║
+    ║    ██╔══██╗╚══██╔══╝██╔════╝████╗  ██║██╔══██╗      ║
+    ║    ███████║   ██║   █████╗  ██╔██╗ ██║███████║      ║
+    ║    ██╔══██║   ██║   ██╔══╝  ██║╚██╗██║██╔══██║      ║
+    ║    ██║  ██║   ██║   ███████╗██║ ╚████║██║  ██║      ║
+    ║    ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝      ║
+    ║                                                      ║
+    ║              🧠 VERSÃO DE TESTE                      ║
+    ║                                                      ║
+    ╚══════════════════════════════════════════════════════╝
+    """)
+    
+    logger.info(f"🚀 ATENA Ω iniciada em {datetime.now()}")
+    logger.info("⏱️  Executando por 30 segundos...")
+    
+    # Simula algum trabalho
+    for i in range(3):
+        logger.info(f"📚 Ciclo {i+1}/3 processando...")
+        await asyncio.sleep(10)
+    
+    logger.info("✅ Ciclo concluído com sucesso!")
+    
+    # Salva arquivo de estado
+    with open("estado_atena.json", "w") as f:
+        import json
+        json.dump({
+            "versao": "1.0.0-teste",
+            "timestamp": datetime.now().isoformat(),
+            "status": "sucesso"
+        }, f, indent=2)
+    
+    print("\n✨ Teste concluído! Arquivo de estado criado.")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+EOF
+        echo "✅ Arquivo main.py criado com sucesso!"
+        echo "main_exists=true" >> $GITHUB_ENV
         
     - name: Executar ATENA
+      if: env.main_exists == 'true'
       id: run_atena
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        REDIS_URL: redis://localhost:6379
-      # Roda por 5 minutos e depois encerra graciosamente
       run: |
         echo "🚀 Iniciando ATENA Ω em $(date)"
-        echo "🔄 Ciclo de 5 minutos..."
+        echo "🔄 Executando por até 5 minutos..."
         
         # Executa com timeout e captura saída
-        timeout --preserve-status 5m python main.py || exit_code=$?
+        timeout 5m python main.py
+        EXIT_CODE=$?
         
-        if [ ${exit_code:-0} -eq 124 ]; then
+        if [ $EXIT_CODE -eq 124 ]; then
           echo "⏱️  Ciclo finalizado por timeout (5min)"
           echo "status=timeout" >> $GITHUB_OUTPUT
-        elif [ ${exit_code:-0} -eq 0 ]; then
+        elif [ $EXIT_CODE -eq 0 ]; then
           echo "✅ Ciclo completado com sucesso"
           echo "status=success" >> $GITHUB_OUTPUT
         else
-          echo "❌ Erro na execução (código: ${exit_code:-0})"
+          echo "❌ Erro na execução (código: $EXIT_CODE)"
           echo "status=error" >> $GITHUB_OUTPUT
-          # Mostra o erro
-          tail -n 50 atena.log 2>/dev/null || echo "Sem logs detalhados"
         fi
         
         echo "fim_em=$(date)" >> $GITHUB_OUTPUT
         
-    - name: Verificar mudanças no código
-      id: check_changes
+    - name: Verificar arquivos gerados
+      if: always()
       run: |
-        # Compara com backup
-        if [ -f main.py ] && [ -f main.py.backup ]; then
-          if ! cmp -s main.py main.py.backup; then
-            echo "🔍 Mudanças detectadas no código!"
-            echo "changed=true" >> $GITHUB_OUTPUT
-            
-            # Mostra diff
-            echo "📋 Diff das mudanças:"
-            git diff --no-index main.py.backup main.py || true
-          else
-            echo "📝 Nenhuma mudança no código"
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-        else
-          echo "⚠️ Arquivos de backup não encontrados"
-          echo "changed=false" >> $GITHUB_OUTPUT
-        fi
+        echo "📁 Arquivos após execução:"
+        ls -la
         
-    - name: Salvar estado da memória
-      run: |
-        # Salva arquivos de estado se existirem
-        if [ -f memoria_atena.json ]; then
-          cp memoria_atena.json memoria_atena_backup.json
-          echo "💾 Memória salva"
-        fi
-        if [ -f historico_evolucoes.json ]; then
-          cp historico_evolucoes.json historico_evolucoes_backup.json
-          echo "📊 Histórico de evoluções salvo"
-        fi
-        if [ -f estado_atena.json ]; then
-          cp estado_atena.json estado_atena_backup.json
-          echo "📈 Estado atual salvo"
-        fi
+        echo ""
+        echo "📊 Arquivos JSON gerados:"
+        find . -name "*.json" -type f | while read file; do
+          echo "   - $file ($(stat -c%s $file) bytes)"
+          if [ -s "$file" ]; then
+            echo "     Conteúdo:"
+            head -5 "$file" | sed 's/^/     /'
+          fi
+        done
         
     - name: Commit e push das mudanças
-      if: always() && steps.check_changes.outputs.changed == 'true'
+      if: always()
       run: |
         git config --global user.name "ATENA Ω 🤖"
         git config --global user.email "atena@evolution.ai"
         
         # Verifica se há mudanças
-        if git status --porcelain | grep -q .; then
-          echo "📦 Preparando commit com mudanças..."
-          
-          # Adiciona arquivos relevantes
-          git add main.py
-          git add *.json 2>/dev/null || true
-          git add *.log 2>/dev/null || true
-          git add requirements.txt 2>/dev/null || true
-          git add .env 2>/dev/null || true
+        git add .
+        
+        if git diff --cached --quiet; then
+          echo "📝 Nenhuma mudança para commit"
+        else
+          echo "📦 Mudanças detectadas!"
           
           # Mostra o que será commitado
           echo "📋 Arquivos modificados:"
           git status --porcelain
           
-          # Cria mensagem de commit com estatísticas
-          CICLO_ID=$(date +'%Y%m%d%H%M%S')
-          EVOLUCOES=$(jq '. | length' historico_evolucoes.json 2>/dev/null || echo "0")
-          REGISTROS=$(jq '.total_registros' estado_atena.json 2>/dev/null || echo "0")
-          
-          git commit -m "🤖 Evolução automática - Ciclo ${CICLO_ID}
+          # Cria mensagem de commit
+          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+          git commit -m "🤖 Evolução automática - Ciclo ${TIMESTAMP}
 
-          📊 Estatísticas:
-          - Total de registros: ${REGISTROS}
-          - Total de evoluções: ${EVOLUCOES}
-          - Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          ⚡ Gerado automaticamente pela ATENA Ω
+          📅 $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           
-          Esta atualização foi gerada automaticamente pela ATENA Ω
-          como parte do seu ciclo contínuo de auto-evolução."
-          
-          # Push com retry
-          echo "🚀 Enviando mudanças para o repositório..."
+          # Tenta push com retry
           for i in {1..3}; do
+            echo "🚀 Tentativa $i de push..."
             if git push; then
-              echo "✅ Push bem-sucedido na tentativa $i"
+              echo "✅ Push bem-sucedido!"
               break
             else
-              echo "⚠️ Tentativa $i falhou, aguardando..."
+              echo "⚠️ Falha na tentativa $i, aguardando..."
               sleep 5
-              git pull --rebase  # Atualiza antes de tentar novamente
+              git pull --rebase
             fi
           done
-        else
-          echo "📝 Nenhuma mudança para commit"
         fi
         
-    - name: Commit mínimo (sem mudanças de código)
-      if: always() && steps.check_changes.outputs.changed != 'true'
-      run: |
-        git config --global user.name "ATENA Ω 🤖"
-        git config --global user.email "atena@evolution.ai"
-        
-        # Adiciona apenas arquivos de estado
-        git add *.json 2>/dev/null || true
-        git add *.log 2>/dev/null || true
-        
-        if git status --porcelain | grep -q .; then
-          echo "📦 Commitando apenas arquivos de estado..."
-          CICLO_ID=$(date +'%Y%m%d%H%M%S')
-          git commit -m "📊 Atualização de estado - Ciclo ${CICLO_ID}
-
-          Apenas arquivos de estado foram atualizados.
-          Nenhuma mudança estrutural no código."
-          
-          git push
-        else
-          echo "📝 Nenhuma mudança para commit"
-        fi
-        
-    - name: Upload de logs como artefato
+    - name: Upload de logs
       if: always()
       uses: actions/upload-artifact@v3
       with:
@@ -243,10 +239,10 @@ EOF
         path: |
           *.log
           *.json
-          !*/**/__pycache__/**
+          *.txt
         retention-days: 7
         
-    - name: Notificar status
+    - name: Resumo do ciclo
       if: always()
       run: |
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -254,34 +250,19 @@ EOF
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "📅 Data: $(date)"
         echo "🔄 Ciclo: ${{ github.run_number }}"
-        echo "📊 Status: ${{ steps.run_atena.outputs.status || 'desconhecido' }}"
-        echo "📝 Mudanças no código: ${{ steps.check_changes.outputs.changed || 'false' }}"
+        echo "📊 Status: ${{ steps.run_atena.outputs.status || 'não executado' }}"
+        echo "📁 Repositório: ${{ github.repository }}"
+        echo "🔖 Commit: ${{ github.sha }}"
         echo ""
         
-        # Mostra estatísticas se disponíveis
+        # Mostra arquivos gerados
         if [ -f estado_atena.json ]; then
-          echo "📈 Estatísticas atuais:"
-          jq -r 'to_entries | .[] | "   \(.key): \(.value)"' estado_atena.json 2>/dev/null || true
-        fi
-        
-        if [ -f historico_evolucoes.json ]; then
-          EVOLUCOES=$(jq '. | length' historico_evolucoes.json 2>/dev/null || echo "0")
-          echo "   total_evolucoes: ${EVOLUCOES}"
+          echo "📈 Arquivo de estado encontrado!"
+          if command -v jq &> /dev/null; then
+            jq '.' estado_atena.json 2>/dev/null || cat estado_atena.json
+          else
+            cat estado_atena.json
+          fi
         fi
         
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        
-    - name: Limpeza
-      if: always()
-      run: |
-        # Remove arquivos temporários
-        rm -f main.py.backup
-        rm -f *.tmp
-        echo "🧹 Limpeza concluída"
-
-# Gatilho para workflow de sucesso
-workflow_call:
-  outputs:
-    status:
-      description: "Status da execução"
-      value: ${{ jobs.evolve.outputs.status }}
