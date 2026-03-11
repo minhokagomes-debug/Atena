@@ -2,12 +2,14 @@ name: ATENA Ω - Ciclo de Vida
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # A cada 5 minutos
+    - cron: '0,30 * * * *'  # Executa no minuto 0 e no minuto 30 de cada hora
   workflow_dispatch:
 
 jobs:
   evolve:
     runs-on: ubuntu-latest
+    # Timeout de segurança para garantir que o job não exceda os 5-7 min
+    timeout-minutes: 10 
     
     steps:
     - name: Clonar repositório
@@ -26,12 +28,16 @@ jobs:
       env:
         GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: python main.py
+      # O comando timeout garante que o python feche após 5 minutos
+      # permitindo que o workflow siga para o commit
+      run: timeout 5m python main.py || echo "Ciclo de 5min finalizado."
       
     - name: Commit e push das mudanças
+      if: always() # Garante que salve as mudanças mesmo se o timeout interromper
       run: |
         git config --global user.name "ATENA Ω"
         git config --global user.email "atena@evolution.ai"
         git add .
-        git diff --quiet && git diff --staged --quiet || git commit -m "🤖 Evolução automática - Ciclo $(date +'%Y%m%d%H%M%S')"
-        git push
+        # Só faz commit se houver mudanças reais no código
+        git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Evolução automática - Ciclo $(date +'%Y%m%d%H%M%S')" && git push)
+        
