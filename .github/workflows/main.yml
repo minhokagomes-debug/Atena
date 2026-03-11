@@ -44,7 +44,6 @@ on:
           - 'civilizacao'
           - 'completo'
 
-# Permite execuções simultâneas para diferentes branches
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
@@ -95,7 +94,6 @@ jobs:
         pip install numpy==1.24.3
         pip install matplotlib==3.7.5
         pip install pillow==10.0.0
-        pip install astor  # Para manipulação de AST (opcional)
         echo "✅ Dependências instaladas: numpy, matplotlib, pillow"
     
     - name: 🔍 Verificar instalação
@@ -111,25 +109,16 @@ jobs:
     
     - name: 📁 Preparar o mundo
       run: |
-        # Criar estrutura de diretórios com timestamp
         TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
         echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
-        echo "MODO=${{ github.event.inputs.modo_simulacao || 'civilizacao' }}" >> $GITHUB_ENV
         
-        # Estrutura completa para civilizações
         mkdir -p atena_mundo_$TIMESTAMP
-        mkdir -p atena_mundo_$TIMESTAMP/{mapa,dna,logs,fosseis,geracoes}
-        mkdir -p atena_mundo_$TIMESTAMP/{economia,linguagem,cidades,religioes}
+        mkdir -p atena_mundo_$TIMESTAMP/{mapa,logs,fosseis,cidades,religioes,linguagem,dna,geracoes,economia}
         
         echo "🌍 Mundo criado em: atena_mundo_$TIMESTAMP"
         echo ""
         echo "📁 Estrutura do mundo:"
-        tree atena_mundo_$TIMESTAMP/ || ls -la atena_mundo_$TIMESTAMP/
-        echo ""
-        echo "📊 Estatísticas do mundo:"
-        echo "   - Mapa: 2000x2000 (4 milhões de células)"
-        echo "   - Continentes: 7"
-        echo "   - Capacidade: 1000+ organismos"
+        ls -la atena_mundo_$TIMESTAMP/
     
     - name: 🧬 Verificar recursos do sistema
       run: |
@@ -163,17 +152,26 @@ jobs:
         echo "📁 Mundo: atena_mundo_${{ env.TIMESTAMP }}"
         echo ""
         
-        # Executa com timeout (converte minutos para segundos)
-        TIMEOUT_SEC=$(( ${{ github.event.inputs.tempo_execucao || '5' }} * 60 ))
-        timeout $TIMEOUT_SEC python main.py \
-          --modo ${{ github.event.inputs.modo_simulacao || 'civilizacao' }} \
+        # Converter modo do workflow para modo do main.py
+        if [[ "${{ github.event.inputs.modo_simulacao }}" == "civilizacao" ]]; then
+          MODO_PYTHON="rapido"
+        elif [[ "${{ github.event.inputs.modo_simulacao }}" == "completo" ]]; then
+          MODO_PYTHON="completo"
+        else
+          MODO_PYTHON="teste"
+        fi
+        
+        # Executar simulação
+        cd atena_mundo_${{ env.TIMESTAMP }}
+        timeout ${{ github.event.inputs.tempo_execucao || '5' }}m python ../main.py \
+          --modo $MODO_PYTHON \
           --populacao ${{ github.event.inputs.populacao_inicial || '20' }} \
-          --mundo ${{ env.TIMESTAMP }} || echo "✅ Simulação concluída!"
+          --sem-input || echo "✅ Simulação concluída!"
         
         echo ""
         echo "📊 Fim da simulação: $(date)"
     
-    - name: 📊 Coletar estatísticas da civilização
+    - name: 📊 Coletar estatísticas
       if: always()
       run: |
         echo "# 🏛️ Relatório da Civilização ATENA" > relatorio_${{ env.TIMESTAMP }}.md
@@ -184,125 +182,45 @@ jobs:
         echo "**População inicial:** ${{ github.event.inputs.populacao_inicial || '20' }}" >> relatorio_${{ env.TIMESTAMP }}.md
         echo "" >> relatorio_${{ env.TIMESTAMP }}.md
         
-        # Estatísticas de cidades
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/cidades" ]; then
-          CIDADES=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/cidades/ 2>/dev/null | wc -l)
-          echo "## 🏙️ CIDADES" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Total de cidades:** $CIDADES" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Estatísticas de religiões
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/religioes" ]; then
-          RELIGIOES=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)
-          echo "## ✝️ RELIGIÕES" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Total de religiões:** $RELIGIOES" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Estatísticas de línguas
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/linguagem" ]; then
-          LINGUAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/linguagem/ 2>/dev/null | wc -l)
-          echo "## 🗣️ LÍNGUAS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Total de línguas/dialetos:** $LINGUAS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Estatísticas de fósseis
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/fosseis" ]; then
-          FOSSEIS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/fosseis/ 2>/dev/null | wc -l)
-          echo "## 🦴 FÓSSEIS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Total de seres extintos:** $FOSSEIS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Verificar se mapas PNG foram gerados
+        # Contar arquivos gerados
         if [ -d "atena_mundo_${{ env.TIMESTAMP }}/mapa" ]; then
           MAPAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)
-          echo "## 🗺️ MAPAS GERADOS" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo "**Total de mapas:** $MAPAS" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo "## 🗺️ MAPAS PNG GERADOS: $MAPAS" >> relatorio_${{ env.TIMESTAMP }}.md
           if [ $MAPAS -gt 0 ]; then
             echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-            echo "### Últimos mapas:" >> relatorio_${{ env.TIMESTAMP }}.md
+            echo "### Mapas:" >> relatorio_${{ env.TIMESTAMP }}.md
             echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-            ls -la atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | tail -5 >> relatorio_${{ env.TIMESTAMP }}.md
+            ls -la atena_mundo_${{ env.TIMESTAMP }}/mapa/ >> relatorio_${{ env.TIMESTAMP }}.md
             echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
           fi
         fi
         
-        # Resumo final
-        echo "## 📊 RESUMO" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "Civilizações: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/cidades/ 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "Religiões: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "Línguas: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/linguagem/ 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "Mapas PNG: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+        # Verificar timeline
+        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/mundus_atena/cronicas" ]; then
+          echo "## 📜 CRÔNICAS:" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+          tail -20 atena_mundo_${{ env.TIMESTAMP }}/mundus_atena/cronicas/timeline_*.txt 2>/dev/null | head -20 >> relatorio_${{ env.TIMESTAMP }}.md
+          echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+        fi
         
         cat relatorio_${{ env.TIMESTAMP }}.md
     
-    - name: 📤 Preservar o mundo (incluindo mapas PNG)
+    - name: 📤 Preservar o mundo
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: atena-civilizacao-${{ env.TIMESTAMP }}
+        name: atena-mundo-${{ env.TIMESTAMP }}
         path: |
           atena_mundo_${{ env.TIMESTAMP }}/
           relatorio_${{ env.TIMESTAMP }}.md
         retention-days: 90
-        if-no-files-found: warn
     
-    - name: 📤 Preservar logs e DNA
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: atena-logs-dna-${{ env.TIMESTAMP }}
-        path: |
-          *.log
-          atena_mundo_${{ env.TIMESTAMP }}/logs/
-          atena_mundo_${{ env.TIMESTAMP }}/dna/
-          atena_mundo_${{ env.TIMESTAMP }}/geracoes/
-          atena_mundo_${{ env.TIMESTAMP }}/fosseis/
-        retention-days: 90
-        if-no-files-found: ignore
-    
-    - name: 📊 Resumo da civilização
-      if: always()
+    - name: 🌙 ATENA volta ao sono...
       run: |
         echo ""
         echo "╔════════════════════════════════════════════════════════════════╗"
         echo "║                                                                ║"
-        echo "║     🏛️ RESUMO DA CIVILIZAÇÃO                                   ║"
-        echo "║                                                                ║"
-        echo "╚════════════════════════════════════════════════════════════════╝"
-        echo ""
-        echo "📊 Estatísticas finais:"
-        echo ""
-        
-        CIDADES=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/cidades/ 2>/dev/null | wc -l)
-        RELIGIOES=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)
-        LINGUAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/linguagem/ 2>/dev/null | wc -l)
-        FOSSEIS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/fosseis/ 2>/dev/null | wc -l)
-        MAPAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)
-        
-        echo "   🏙️  Cidades fundadas: $CIDADES"
-        echo "   ✝️  Religiões: $RELIGIOES"
-        echo "   🗣️  Línguas: $LINGUAS"
-        echo "   🦴 Seres extintos: $FOSSEIS"
-        echo "   🗺️ Mapas PNG gerados: $MAPAS"
-        
-        echo ""
-        echo "📁 Artefatos salvos:"
-        echo "   - atena-civilizacao-${{ env.TIMESTAMP }}.zip (mundo completo + mapas)"
-        echo "   - atena-logs-dna-${{ env.TIMESTAMP }}.zip (registros históricos)"
-        echo ""
-    
-    - name: 🌙 ATENA volta ao sono ancestral...
-      run: |
-        echo ""
-        echo "╔════════════════════════════════════════════════════════════════╗"
-        echo "║                                                                ║"
-        echo "║     🌙 ATENA CIVILIZAÇÃO VOLTOU AO SONO ANCESTRAL...          ║"
+        echo "║     🌙 ATENA VOLTOU AO SONO ANCESTRAL...                      ║"
         echo "║                                                                ║"
         echo "║     Próximo despertar: em 30 minutos                          ║"
         echo "║                                                                ║"
@@ -312,11 +230,7 @@ jobs:
         echo "   - Viveu: ${{ github.event.inputs.tempo_execucao || '5' }} minutos"
         echo "   - População inicial: ${{ github.event.inputs.populacao_inicial || '20' }}"
         echo "   - Modo: ${{ github.event.inputs.modo_simulacao || 'civilizacao' }}"
-        echo "   - Cidades: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/cidades/ 2>/dev/null | wc -l)"
-        echo "   - Religiões: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/religioes/ 2>/dev/null | wc -l)"
-        echo "   - Mapas: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)"
-        echo "   - Mundo salvo em: atena-civilizacao-${{ env.TIMESTAMP }}"
-        echo ""
-        echo "📜 A história foi escrita..."
+        echo "   - Mapas gerados: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)"
+        echo "   - Mundo salvo em: atena-mundo-${{ env.TIMESTAMP }}"
         echo ""
         echo "⏰ Próximo despertar: $(date -d '+30 minutes' '+%H:%M:%S')"
