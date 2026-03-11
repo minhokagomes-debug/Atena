@@ -22,27 +22,26 @@ on:
           - '10'
           - '15'
           - '30'
-      populacao_inicial:
-        description: 'População inicial'
+          - '60'
+      modo_evolucao:
+        description: 'Modo de evolução'
         required: true
-        default: '20'
+        default: 'completo'
         type: choice
         options:
-          - '10'
-          - '20'
-          - '50'
-          - '100'
-          - '200'
-      modo_simulacao:
-        description: 'Modo de simulação'
+          - 'aprendizado'      # Apenas aprende da internet
+          - 'mutacao'          # Apenas muta código
+          - 'algoritmos'       # Apenas evolui algoritmos
+          - 'ia'               # Apenas treina IA
+          - 'completo'         # Tudo junto
+      fontes_externas:
+        description: 'Usar fontes externas (pode ser lento)'
         required: true
-        default: 'civilizacao'
+        default: 'sim'
         type: choice
         options:
-          - 'genetico'
-          - 'neural'
-          - 'civilizacao'
-          - 'completo'
+          - 'sim'
+          - 'nao'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,9 +49,9 @@ concurrency:
 
 jobs:
   despertar-atena:
-    name: 🏛️ ATENA Civilização (${{ github.event.schedule && 'automático' || 'manual' }})
+    name: 🧬 ATENA Apotheosis (${{ github.event.schedule && 'automático' || 'manual' }})
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120  # 2 horas para simulações longas
     
     strategy:
       matrix:
@@ -64,7 +63,7 @@ jobs:
       run: |
         echo "╔════════════════════════════════════════════════════════════════╗"
         echo "║                                                                ║"
-        echo "║     🏛️ ATENA CIVILIZAÇÃO ESTÁ DESPERTANDO!                    ║"
+        echo "║     🧬 ATENA APOTHEOSIS ESTÁ DESPERTANDO!                     ║"
         echo "║                                                                ║"
         echo "╚════════════════════════════════════════════════════════════════╝"
         echo ""
@@ -73,14 +72,14 @@ jobs:
         echo "🔄 Evento: ${{ github.event_name }}"
         echo "🔢 Instância: ${{ matrix.instance }}"
         echo "⏱️  Tempo: ${{ github.event.inputs.tempo_execucao || '5' }} minutos"
-        echo "👥 População: ${{ github.event.inputs.populacao_inicial || '20' }}"
-        echo "🎮 Modo: ${{ github.event.inputs.modo_simulacao || 'civilizacao' }}"
+        echo "🧬 Modo: ${{ github.event.inputs.modo_evolucao || 'completo' }}"
+        echo "🌐 Fontes externas: ${{ github.event.inputs.fontes_externas || 'sim' }}"
         echo ""
     
     - name: 📥 Checkout do código
       uses: actions/checkout@v4
       with:
-        fetch-depth: 1
+        fetch-depth: 0  # Histórico completo para versionamento
     
     - name: 🐍 Setup Python
       uses: actions/setup-python@v5
@@ -88,37 +87,69 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
     
-    - name: 📦 Instalar dependências
+    - name: 📦 Instalar dependências básicas
       run: |
         python -m pip install --upgrade pip
         pip install numpy==1.24.3
+        pip install astor==0.8.1
+        echo "✅ Dependências básicas instaladas"
+    
+    - name: 🤖 Instalar dependências de IA (opcionais)
+      if: ${{ github.event.inputs.modo_evolucao == 'ia' || github.event.inputs.modo_evolucao == 'completo' }}
+      run: |
+        pip install transformers==4.35.2
+        pip install torch==2.1.0
+        pip install sentence-transformers==2.2.2
+        echo "✅ Dependências de IA instaladas"
+    
+    - name: 🗺️ Instalar dependências de mapas (opcionais)
+      if: ${{ github.event.inputs.modo_evolucao == 'completo' }}
+      run: |
         pip install matplotlib==3.7.5
         pip install pillow==10.0.0
-        echo "✅ Dependências instaladas: numpy, matplotlib, pillow"
+        echo "✅ Dependências de mapas instaladas"
     
     - name: 🔍 Verificar instalação
       run: |
         python -c "
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from PIL import Image
-        print(f'✅ NumPy: {np.__version__}')
-        print(f'✅ Matplotlib: {plt.matplotlib.__version__}')
-        print('✅ Pillow: OK')
+        import sys
+        print(f'🐍 Python: {sys.version}')
+        
+        try:
+            import numpy as np
+            print(f'✅ NumPy: {np.__version__}')
+        except: print('⚠️ NumPy não instalado')
+        
+        try:
+            import astor
+            print(f'✅ ASTor: {astor.__version__}')
+        except: print('⚠️ ASTor não instalado')
+        
+        try:
+            import transformers
+            print(f'✅ Transformers: {transformers.__version__}')
+        except: print('⚠️ Transformers não instalado')
         "
     
-    - name: 📁 Preparar o mundo
+    - name: 📁 Preparar o ambiente evolutivo
       run: |
         TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
         echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
         
-        mkdir -p atena_mundo_$TIMESTAMP
-        mkdir -p atena_mundo_$TIMESTAMP/{mapa,logs,fosseis,cidades,religioes,linguagem,dna,geracoes,economia}
+        # Estrutura completa para a ATENA Apotheosis
+        mkdir -p atena_apotheosis_$TIMESTAMP
+        mkdir -p atena_apotheosis_$TIMESTAMP/{conhecimento,versoes,modelos,logs,dna,mapas,cronicas}
         
-        echo "🌍 Mundo criado em: atena_mundo_$TIMESTAMP"
+        echo "🧬 Ambiente evolutivo criado em: atena_apotheosis_$TIMESTAMP"
         echo ""
-        echo "📁 Estrutura do mundo:"
-        ls -la atena_mundo_$TIMESTAMP/
+        echo "📁 Estrutura do ambiente:"
+        tree atena_apotheosis_$TIMESTAMP/ || ls -la atena_apotheosis_$TIMESTAMP/
+        echo ""
+        echo "📊 Capacidades:"
+        echo "   📚 Banco de conhecimento: SQLite"
+        echo "   💾 Versionamento de código: ${{ github.run_number }} versões"
+        echo "   🧬 Algoritmos evolutivos: 2 iniciais"
+        echo "   🤖 Modelos de IA: configurável"
     
     - name: 🧬 Verificar recursos do sistema
       run: |
@@ -126,111 +157,195 @@ jobs:
         echo "   CPUs: $(nproc)"
         echo "   Memória: $(free -h | grep Mem | awk '{print $2}')"
         echo "   Disco: $(df -h . | tail -1 | awk '{print $2}')"
+        echo "   GitHub Run #: ${{ github.run_number }}"
         echo ""
-        echo "✅ Sistema pronto para simulação"
+        echo "✅ Sistema pronto para evolução"
     
-    - name: 🏛️ ATENA INICIA CIVILIZAÇÃO
+    - name: 🧬 ATENA INICIA CICLO EVOLUTIVO
+      env:
+        FONTES_EXTERNAS: ${{ github.event.inputs.fontes_externas || 'sim' }}
       run: |
         echo ""
         echo "╔════════════════════════════════════════════════════════════════╗"
         echo "║                                                                ║"
-        echo "║     🏛️ ATENA CIVILIZAÇÃO ESTÁ VIVA!                           ║"
+        echo "║     🧬 ATENA APOTHEOSIS ESTÁ VIVA!                            ║"
         echo "║                                                                ║"
-        echo "║     ✓ Mapas continentais (2000x2000)                          ║"
-        echo "║     ✓ Redes neurais recorrentes                               ║"
-        echo "║     ✓ Cidades auto-organizadas                                ║"
-        echo "║     ✓ Religiões emergentes                                    ║"
-        echo "║     ✓ Guerras entre civilizações                              ║"
-        echo "║     ✓ Dialetos e línguas                                      ║"
-        echo "║     ✓ Economia e comércio                                     ║"
+        echo "║     ✓ Aprende da internet (arXiv, GitHub, Wikipedia)          ║"
+        echo "║     ✓ Modifica próprio código via AST                         ║"
+        echo "║     ✓ Cria novas versões de si mesma                          ║"
+        echo "║     ✓ Treina modelos de IA                                    ║"
+        echo "║     ✓ Evolui algoritmos por seleção natural                   ║"
         echo "╚════════════════════════════════════════════════════════════════╝"
         echo ""
-        echo "📊 Início da simulação: $(date)"
+        echo "📊 Início da evolução: $(date)"
         echo "⏱️  Duração: ${{ github.event.inputs.tempo_execucao || '5' }} minutos"
-        echo "👥 População inicial: ${{ github.event.inputs.populacao_inicial || '20' }}"
-        echo "🎮 Modo: ${{ github.event.inputs.modo_simulacao || 'civilizacao' }}"
-        echo "📁 Mundo: atena_mundo_${{ env.TIMESTAMP }}"
+        echo "🧬 Modo: ${{ github.event.inputs.modo_evolucao || 'completo' }}"
+        echo "🌐 Fontes externas: $FONTES_EXTERNAS"
+        echo "📁 Ambiente: atena_apotheosis_${{ env.TIMESTAMP }}"
         echo ""
         
-        # Converter modo do workflow para modo do main.py
-        if [[ "${{ github.event.inputs.modo_simulacao }}" == "civilizacao" ]]; then
-          MODO_PYTHON="rapido"
-        elif [[ "${{ github.event.inputs.modo_simulacao }}" == "completo" ]]; then
-          MODO_PYTHON="completo"
-        else
-          MODO_PYTHON="teste"
+        # Configurar modo de execução
+        MODO_EXEC="${{ github.event.inputs.modo_evolucao || 'completo' }}"
+        
+        # Se não quiser fontes externas, desabilitar
+        if [[ "$FONTES_EXTERNAS" == "nao" ]]; then
+          export ATENA_SEM_INTERNET=1
+          echo "🌐 Modo offline: sem consultas à internet"
         fi
         
         # Executar simulação
-        cd atena_mundo_${{ env.TIMESTAMP }}
-        timeout ${{ github.event.inputs.tempo_execucao || '5' }}m python ../main.py \
-          --modo $MODO_PYTHON \
-          --populacao ${{ github.event.inputs.populacao_inicial || '20' }} \
-          --sem-input || echo "✅ Simulação concluída!"
+        cd atena_apotheosis_${{ env.TIMESTAMP }}
+        
+        # Copiar main.py para o diretório
+        cp ../main.py .
+        
+        # Executar com timeout
+        timeout ${{ github.event.inputs.tempo_execucao || '5' }}m python main.py \
+          --modo $MODO_EXEC \
+          --run ${{ github.run_number }} \
+          --timestamp ${{ env.TIMESTAMP }} || echo "✅ Ciclo evolutivo concluído!"
         
         echo ""
-        echo "📊 Fim da simulação: $(date)"
+        echo "📊 Fim da evolução: $(date)"
     
-    - name: 📊 Coletar estatísticas
+    - name: 📊 Coletar estatísticas evolutivas
       if: always()
       run: |
-        echo "# 🏛️ Relatório da Civilização ATENA" > relatorio_${{ env.TIMESTAMP }}.md
+        echo "# 🧬 Relatório da ATENA Apotheosis" > relatorio_${{ env.TIMESTAMP }}.md
         echo "" >> relatorio_${{ env.TIMESTAMP }}.md
         echo "**Data:** $(date)" >> relatorio_${{ env.TIMESTAMP }}.md
         echo "**Evento:** ${{ github.event_name }}" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "**Modo:** ${{ github.event.inputs.modo_simulacao || 'civilizacao' }}" >> relatorio_${{ env.TIMESTAMP }}.md
-        echo "**População inicial:** ${{ github.event.inputs.populacao_inicial || '20' }}" >> relatorio_${{ env.TIMESTAMP }}.md
+        echo "**Run #:** ${{ github.run_number }}" >> relatorio_${{ env.TIMESTAMP }}.md
+        echo "**Modo:** ${{ github.event.inputs.modo_evolucao || 'completo' }}" >> relatorio_${{ env.TIMESTAMP }}.md
         echo "" >> relatorio_${{ env.TIMESTAMP }}.md
         
-        # Contar arquivos gerados
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/mapa" ]; then
-          MAPAS=$(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)
-          echo "## 🗺️ MAPAS PNG GERADOS: $MAPAS" >> relatorio_${{ env.TIMESTAMP }}.md
-          if [ $MAPAS -gt 0 ]; then
+        # Estatísticas do conhecimento
+        if [ -f "atena_apotheosis_${{ env.TIMESTAMP }}/conhecimento/conhecimento.db" ]; then
+          echo "## 📚 CONHECIMENTO" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+          sqlite3 atena_apotheosis_${{ env.TIMESTAMP }}/conhecimento/conhecimento.db \
+            "SELECT fonte, COUNT(*) FROM conhecimento GROUP BY fonte ORDER BY COUNT(*) DESC LIMIT 5" \
+            2>/dev/null | while IFS='|' read fonte count; do
+            echo "   $fonte: $count itens" >> relatorio_${{ env.TIMESTAMP }}.md
+          done
+          echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+        fi
+        
+        # Versões de código
+        if [ -d "atena_apotheosis_${{ env.TIMESTAMP }}/versoes" ]; then
+          VERSAO_COUNT=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/versoes/*.py 2>/dev/null | wc -l)
+          echo "## 💾 VERSÕES DE CÓDIGO" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo "**Total de versões:** $VERSAO_COUNT" >> relatorio_${{ env.TIMESTAMP }}.md
+          
+          if [ $VERSAO_COUNT -gt 0 ]; then
             echo "" >> relatorio_${{ env.TIMESTAMP }}.md
-            echo "### Mapas:" >> relatorio_${{ env.TIMESTAMP }}.md
+            echo "### Últimas versões:" >> relatorio_${{ env.TIMESTAMP }}.md
             echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-            ls -la atena_mundo_${{ env.TIMESTAMP }}/mapa/ >> relatorio_${{ env.TIMESTAMP }}.md
+            ls -la atena_apotheosis_${{ env.TIMESTAMP }}/versoes/ | tail -5 >> relatorio_${{ env.TIMESTAMP }}.md
             echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
           fi
         fi
         
-        # Verificar timeline
-        if [ -d "atena_mundo_${{ env.TIMESTAMP }}/mundus_atena/cronicas" ]; then
-          echo "## 📜 CRÔNICAS:" >> relatorio_${{ env.TIMESTAMP }}.md
-          echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
-          tail -20 atena_mundo_${{ env.TIMESTAMP }}/mundus_atena/cronicas/timeline_*.txt 2>/dev/null | head -20 >> relatorio_${{ env.TIMESTAMP }}.md
-          echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+        # Algoritmos evolutivos
+        if [ -d "atena_apotheosis_${{ env.TIMESTAMP }}/dna" ]; then
+          ALGO_COUNT=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/dna/*.py 2>/dev/null | wc -l)
+          echo "## 🧬 ALGORITMOS" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo "**Total de algoritmos:** $ALGO_COUNT" >> relatorio_${{ env.TIMESTAMP }}.md
+        fi
+        
+        # Modelos de IA
+        if [ -d "atena_apotheosis_${{ env.TIMESTAMP }}/modelos" ]; then
+          MODELO_COUNT=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/modelos/ 2>/dev/null | wc -l)
+          echo "## 🤖 MODELOS DE IA" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo "**Total de modelos:** $MODELO_COUNT" >> relatorio_${{ env.TIMESTAMP }}.md
+        fi
+        
+        # Logs e métricas
+        if [ -d "atena_apotheosis_${{ env.TIMESTAMP }}/logs" ]; then
+          METRICAS=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/logs/metricas_*.json 2>/dev/null | wc -l)
+          echo "## 📊 MÉTRICAS" >> relatorio_${{ env.TIMESTAMP }}.md
+          echo "**Arquivos de métricas:** $METRICAS" >> relatorio_${{ env.TIMESTAMP }}.md
+          
+          if [ $METRICAS -gt 0 ]; then
+            ULTIMA_METRICA=$(ls -t atena_apotheosis_${{ env.TIMESTAMP }}/logs/metricas_*.json | head -1)
+            echo "" >> relatorio_${{ env.TIMESTAMP }}.md
+            echo "### Últimas métricas:" >> relatorio_${{ env.TIMESTAMP }}.md
+            echo '```json' >> relatorio_${{ env.TIMESTAMP }}.md
+            cat "$ULTIMA_METRICA" | jq '. | {conhecimento_total, geracao, mutacoes, versoes, algoritmos}' 2>/dev/null >> relatorio_${{ env.TIMESTAMP }}.md || echo "  (erro ao ler)" >> relatorio_${{ env.TIMESTAMP }}.md
+            echo '```' >> relatorio_${{ env.TIMESTAMP }}.md
+          fi
         fi
         
         cat relatorio_${{ env.TIMESTAMP }}.md
     
-    - name: 📤 Preservar o mundo
+    - name: 📤 Preservar o ambiente evolutivo
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: atena-mundo-${{ env.TIMESTAMP }}
+        name: atena-apotheosis-${{ env.TIMESTAMP }}
         path: |
-          atena_mundo_${{ env.TIMESTAMP }}/
+          atena_apotheosis_${{ env.TIMESTAMP }}/
           relatorio_${{ env.TIMESTAMP }}.md
         retention-days: 90
     
-    - name: 🌙 ATENA volta ao sono...
+    - name: 📤 Preservar versões de código
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: atena-versoes-${{ env.TIMESTAMP }}
+        path: |
+          atena_apotheosis_${{ env.TIMESTAMP }}/versoes/
+        retention-days: 365  # Guardar versões por 1 ano
+    
+    - name: 📊 Resumo da evolução
+      if: always()
       run: |
         echo ""
         echo "╔════════════════════════════════════════════════════════════════╗"
         echo "║                                                                ║"
-        echo "║     🌙 ATENA VOLTOU AO SONO ANCESTRAL...                      ║"
+        echo "║     🧬 RESUMO DA EVOLUÇÃO                                      ║"
+        echo "║                                                                ║"
+        echo "╚════════════════════════════════════════════════════════════════╝"
+        echo ""
+        echo "📊 Estatísticas finais:"
+        echo ""
+        
+        if [ -f "atena_apotheosis_${{ env.TIMESTAMP }}/conhecimento/conhecimento.db" ]; then
+          CONHECIMENTO=$(sqlite3 atena_apotheosis_${{ env.TIMESTAMP }}/conhecimento/conhecimento.db \
+            "SELECT COUNT(*) FROM conhecimento" 2>/dev/null || echo "0")
+          echo "   📚 Itens de conhecimento: $CONHECIMENTO"
+        fi
+        
+        VERSAO_COUNT=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/versoes/*.py 2>/dev/null | wc -l)
+        ALGO_COUNT=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/dna/*.py 2>/dev/null | wc -l)
+        MODELO_COUNT=$(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/modelos/ 2>/dev/null | wc -l)
+        
+        echo "   💾 Versões de código: $VERSAO_COUNT"
+        echo "   🧬 Algoritmos evolutivos: $ALGO_COUNT"
+        echo "   🤖 Modelos de IA: $MODELO_COUNT"
+        
+        echo ""
+        echo "📁 Artefatos salvos:"
+        echo "   - atena-apotheosis-${{ env.TIMESTAMP }}.zip (ambiente completo)"
+        echo "   - atena-versoes-${{ env.TIMESTAMP }}.zip (histórico de código)"
+        echo ""
+    
+    - name: 🌙 ATENA volta ao sono profundo...
+      run: |
+        echo ""
+        echo "╔════════════════════════════════════════════════════════════════╗"
+        echo "║                                                                ║"
+        echo "║     🌙 ATENA VOLTOU AO SONO PROFUNDO...                       ║"
         echo "║                                                                ║"
         echo "║     Próximo despertar: em 30 minutos                          ║"
         echo "║                                                                ║"
         echo "╚════════════════════════════════════════════════════════════════╝"
         echo ""
-        echo "📊 Resumo da civilização:"
+        echo "📊 Resumo da evolução:"
         echo "   - Viveu: ${{ github.event.inputs.tempo_execucao || '5' }} minutos"
-        echo "   - População inicial: ${{ github.event.inputs.populacao_inicial || '20' }}"
-        echo "   - Modo: ${{ github.event.inputs.modo_simulacao || 'civilizacao' }}"
-        echo "   - Mapas gerados: $(ls -1 atena_mundo_${{ env.TIMESTAMP }}/mapa/*.png 2>/dev/null | wc -l)"
-        echo "   - Mundo salvo em: atena-mundo-${{ env.TIMESTAMP }}"
+        echo "   - Modo: ${{ github.event.inputs.modo_evolucao || 'completo' }}"
+        echo "   - Versões: $(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/versoes/*.py 2>/dev/null | wc -l)"
+        echo "   - Conhecimento: $(ls -1 atena_apotheosis_${{ env.TIMESTAMP }}/conhecimento/*.db 2>/dev/null | wc -l)"
+        echo "   - Ambiente salvo em: atena-apotheosis-${{ env.TIMESTAMP }}"
         echo ""
         echo "⏰ Próximo despertar: $(date -d '+30 minutes' '+%H:%M:%S')"
