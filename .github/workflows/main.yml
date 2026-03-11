@@ -2,12 +2,8 @@ name: ATENA Ω - Ciclo de Vida
 
 on:
   schedule:
-    - cron: '0,30 * * * *'  # Executa a cada 30 minutos
-  workflow_dispatch:  # Permite execução manual
-
-# Permissões necessárias para commit/push
-permissions:
-  contents: write
+    - cron: '0,30 * * * *'
+  workflow_dispatch:
 
 jobs:
   evolve:
@@ -25,79 +21,25 @@ jobs:
       run: |
         echo "📁 Conteúdo do repositório:"
         ls -la
-        echo ""
         
-        # Verifica se main.py existe
-        if [ -f "main.py" ]; then
-          echo "✅ main.py encontrado"
-          echo "main_exists=true" >> $GITHUB_ENV
-          
-          # Mostra as primeiras linhas
-          echo "📝 Primeiras 10 linhas do main.py:"
-          head -10 main.py
-        else
-          echo "❌ main.py NÃO encontrado!"
-          echo "main_exists=false" >> $GITHUB_ENV
-          
-          # Lista todos os arquivos .py
-          echo "🔍 Arquivos .py encontrados:"
-          find . -name "*.py" -type f
-        fi
-        
-        # Verifica requirements.txt
-        if [ -f "requirements.txt" ]; then
-          echo "✅ requirements.txt encontrado"
-          echo "📦 Dependências:"
-          cat requirements.txt
-        else
-          echo "⚠️ requirements.txt não encontrado"
-        fi
-        
+        echo -e "\n📝 Arquivos Python encontrados:"
+        find . -name "*.py" -type f || echo "Nenhum arquivo .py encontrado"
+    
     - name: Configurar Python
-      if: env.main_exists == 'true'
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
-        cache: 'pip'
     
     - name: Instalar dependências
-      if: env.main_exists == 'true'
       run: |
         python -m pip install --upgrade pip
-        
-        # Instala dependências essenciais primeiro
         pip install aiohttp redis tenacity numpy scikit-learn psutil black
-        
-        # Depois instala do requirements.txt se existir
-        if [ -f requirements.txt ]; then
-          echo "📦 Instalando dependências do requirements.txt"
-          pip install -r requirements.txt
-        fi
-        
-        # Verifica instalação
-        echo "📦 Pacotes instalados:"
-        pip list
-        
-    - name: Verificar sintaxe do Python
-      if: env.main_exists == 'true'
+    
+    - name: Criar main.py se não existir
       run: |
-        echo "🔍 Verificando sintaxe do main.py..."
-        python -m py_compile main.py || {
-          echo "❌ ERRO DE SINTAXE no main.py!"
-          exit 1
-        }
-        echo "✅ Sintaxe OK!"
-        
-    - name: Criar arquivo de teste mínimo
-      if: env.main_exists == 'false'
-      run: |
-        echo "📝 Criando arquivo main.py básico para teste..."
-        cat > main.py << 'EOF'
-#!/usr/bin/env python3
-"""
-ATENA Ω - Versão de Teste
-"""
-
+        if [ ! -f "main.py" ]; then
+          echo "📝 Criando main.py básico..."
+          cat > main.py << 'EOF'
 import asyncio
 import logging
 from datetime import datetime
@@ -106,163 +48,37 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def main():
-    """Função principal de teste"""
-    print("""
-    ╔══════════════════════════════════════════════════════╗
-    ║                                                      ║
-    ║     █████╗ ████████╗███████╗███╗   ██╗ █████╗       ║
-    ║    ██╔══██╗╚══██╔══╝██╔════╝████╗  ██║██╔══██╗      ║
-    ║    ███████║   ██║   █████╗  ██╔██╗ ██║███████║      ║
-    ║    ██╔══██║   ██║   ██╔══╝  ██║╚██╗██║██╔══██║      ║
-    ║    ██║  ██║   ██║   ███████╗██║ ╚████║██║  ██║      ║
-    ║    ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝      ║
-    ║                                                      ║
-    ║              🧠 VERSÃO DE TESTE                      ║
-    ║                                                      ║
-    ╚══════════════════════════════════════════════════════╝
-    """)
+    print("🚀 ATENA Ω iniciada")
+    logger.info(f"Executando em {datetime.now()}")
+    await asyncio.sleep(5)
+    print("✅ Ciclo concluído")
     
-    logger.info(f"🚀 ATENA Ω iniciada em {datetime.now()}")
-    logger.info("⏱️  Executando por 30 segundos...")
-    
-    # Simula algum trabalho
-    for i in range(3):
-        logger.info(f"📚 Ciclo {i+1}/3 processando...")
-        await asyncio.sleep(10)
-    
-    logger.info("✅ Ciclo concluído com sucesso!")
-    
-    # Salva arquivo de estado
-    with open("estado_atena.json", "w") as f:
-        import json
-        json.dump({
-            "versao": "1.0.0-teste",
-            "timestamp": datetime.now().isoformat(),
-            "status": "sucesso"
-        }, f, indent=2)
-    
-    print("\n✨ Teste concluído! Arquivo de estado criado.")
+    with open("estado.txt", "w") as f:
+        f.write(f"Executado em {datetime.now()}")
 
 if __name__ == "__main__":
     asyncio.run(main())
 EOF
-        echo "✅ Arquivo main.py criado com sucesso!"
-        echo "main_exists=true" >> $GITHUB_ENV
-        
-    - name: Executar ATENA
-      if: env.main_exists == 'true'
-      id: run_atena
-      env:
-        GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        echo "🚀 Iniciando ATENA Ω em $(date)"
-        echo "🔄 Executando por até 5 minutos..."
-        
-        # Executa com timeout e captura saída
-        timeout 5m python main.py
-        EXIT_CODE=$?
-        
-        if [ $EXIT_CODE -eq 124 ]; then
-          echo "⏱️  Ciclo finalizado por timeout (5min)"
-          echo "status=timeout" >> $GITHUB_OUTPUT
-        elif [ $EXIT_CODE -eq 0 ]; then
-          echo "✅ Ciclo completado com sucesso"
-          echo "status=success" >> $GITHUB_OUTPUT
-        else
-          echo "❌ Erro na execução (código: $EXIT_CODE)"
-          echo "status=error" >> $GITHUB_OUTPUT
+          echo "✅ main.py criado"
         fi
-        
-        echo "fim_em=$(date)" >> $GITHUB_OUTPUT
-        
-    - name: Verificar arquivos gerados
-      if: always()
+    
+    - name: Executar ATENA
       run: |
-        echo "📁 Arquivos após execução:"
-        ls -la
-        
-        echo ""
-        echo "📊 Arquivos JSON gerados:"
-        find . -name "*.json" -type f | while read file; do
-          echo "   - $file ($(stat -c%s $file) bytes)"
-          if [ -s "$file" ]; then
-            echo "     Conteúdo:"
-            head -5 "$file" | sed 's/^/     /'
-          fi
-        done
-        
-    - name: Commit e push das mudanças
-      if: always()
+        echo "🚀 Executando ATENA Ω..."
+        python main.py
+        echo "✅ Execução concluída"
+    
+    - name: Commit e push
       run: |
-        git config --global user.name "ATENA Ω 🤖"
+        git config --global user.name "ATENA Ω"
         git config --global user.email "atena@evolution.ai"
         
-        # Verifica se há mudanças
         git add .
         
         if git diff --cached --quiet; then
-          echo "📝 Nenhuma mudança para commit"
+          echo "📝 Sem mudanças para commit"
         else
-          echo "📦 Mudanças detectadas!"
-          
-          # Mostra o que será commitado
-          echo "📋 Arquivos modificados:"
-          git status --porcelain
-          
-          # Cria mensagem de commit
-          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-          git commit -m "🤖 Evolução automática - Ciclo ${TIMESTAMP}
-
-          ⚡ Gerado automaticamente pela ATENA Ω
-          📅 $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          
-          # Tenta push com retry
-          for i in {1..3}; do
-            echo "🚀 Tentativa $i de push..."
-            if git push; then
-              echo "✅ Push bem-sucedido!"
-              break
-            else
-              echo "⚠️ Falha na tentativa $i, aguardando..."
-              sleep 5
-              git pull --rebase
-            fi
-          done
+          echo "📦 Mudanças detectadas"
+          git commit -m "🤖 Evolução automática $(date +'%Y%m%d%H%M%S')"
+          git push
         fi
-        
-    - name: Upload de logs
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: atena-logs-${{ github.run_id }}
-        path: |
-          *.log
-          *.json
-          *.txt
-        retention-days: 7
-        
-    - name: Resumo do ciclo
-      if: always()
-      run: |
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "🤖 RESUMO DO CICLO ATENA Ω"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "📅 Data: $(date)"
-        echo "🔄 Ciclo: ${{ github.run_number }}"
-        echo "📊 Status: ${{ steps.run_atena.outputs.status || 'não executado' }}"
-        echo "📁 Repositório: ${{ github.repository }}"
-        echo "🔖 Commit: ${{ github.sha }}"
-        echo ""
-        
-        # Mostra arquivos gerados
-        if [ -f estado_atena.json ]; then
-          echo "📈 Arquivo de estado encontrado!"
-          if command -v jq &> /dev/null; then
-            jq '.' estado_atena.json 2>/dev/null || cat estado_atena.json
-          else
-            cat estado_atena.json
-          fi
-        fi
-        
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
