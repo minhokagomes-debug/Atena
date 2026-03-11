@@ -2,20 +2,14 @@ name: ATENA Ω - Ciclo de Vida Divino
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main", "master" ]
   pull_request:
     branches: [ "main" ]
-  schedule:
-    - cron: '0 */6 * * *'
   workflow_dispatch:
 
-env:
-  PYTHON_VERSION: '3.10'
-  PIP_CACHE_DIR: ~/.cache/pip
-
 jobs:
-  testar-instalacao:
-    name: 🧪 Testar Instalação
+  executar-atena:
+    name: 🧠 Executar ATENA
     runs-on: ubuntu-latest
     timeout-minutes: 10
     
@@ -26,110 +20,48 @@ jobs:
     - name: 🐍 Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: '3.10'
     
-    - name: 📦 Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.PIP_CACHE_DIR }}
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: 🔧 Instalar Dependências do Sistema
+    - name: 🔧 Instalar dependências do sistema
       run: |
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
-          cmake \
-          libopenblas-dev \
           libsqlite3-dev \
           sqlite3
     
-    - name: 📦 Instalar Dependências Python
+    - name: 📦 Instalar dependências Python (via ATENA)
       run: |
         python -m pip install --upgrade pip
-        pip install --no-cache-dir -r requirements.txt
+        python main.py --install-only
     
-    - name: 🔍 Verificar Instalação
+    - name: 🔍 Testar instalação
       run: |
-        python -c "
-        import sys
-        print(f'Python {sys.version}')
-        
-        # Verificar módulos essenciais
-        modulos = ['aiosqlite', 'aiohttp', 'numpy', 'pandas', 'transformers']
-        for m in modulos:
-            try:
-                __import__(m)
-                print(f'✅ {m}')
-            except ImportError as e:
-                print(f'❌ {m}: {e}')
-                sys.exit(1)
-        "
+        python main.py --test-mode
     
-    - name: ✅ Instalação OK
-      run: echo "✅ Todas as dependências instaladas com sucesso!"
-
-  executar-atena:
-    name: 🧠 Executar ATENA
-    runs-on: ubuntu-latest
-    needs: testar-instalacao
-    timeout-minutes: 30
-    if: success()
-    
-    steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
-    
-    - name: 🐍 Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: 📦 Restaurar Cache
-      uses: actions/cache@v3
-      with:
-        path: ${{ env.PIP_CACHE_DIR }}
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-    
-    - name: 📁 Preparar Diretórios
+    - name: 📁 Criar diretórios
       run: |
-        mkdir -p data backups exports logs chromadb_data faiss_index
-        chmod -R 777 data backups exports logs
+        mkdir -p data data/backups logs
     
     - name: 🧠 Executar ATENA
       run: |
         echo "🚀 Iniciando ATENA Ω..."
-        timeout 25m python main.py --ciclo-automatico || echo "⚠️ Ciclo finalizado"
+        python main.py --ciclo-automatico
     
-    - name: 💾 Backup do Estado
+    - name: 💾 Backup dos logs
       if: always()
       run: |
-        TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
-        
-        # Backup dos dados importantes
-        if [ -d "data" ] && [ "$(ls -A data)" ]; then
-          tar -czf "backups/atena_state_${TIMESTAMP}.tar.gz" \
-            data/ exports/ logs/ \
-            --exclude="*.tmp" \
-            --exclude="*.lock" \
-            2>/dev/null || true
-          echo "✅ Backup criado: backups/atena_state_${TIMESTAMP}.tar.gz"
-        fi
-        
-        # Limpar backups antigos (manter últimos 5)
-        cd backups && ls -t atena_state_*.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm
+        tar -czf "atena-logs-$(date +'%Y%m%d-%H%M%S').tar.gz" \
+          data/ logs/ || true
     
-    - name: 📤 Upload de Logs
+    - name: 📤 Upload de artefatos
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: atena-logs-${{ github.run_id }}
+        name: atena-logs
         path: |
-          logs/*.log
-          exports/*.json
-          exports/*.png
-          backups/atena_state_*.tar.gz
+          *.tar.gz
+          data/backups/
+          logs/
         retention-days: 7
         if-no-files-found: ignore
