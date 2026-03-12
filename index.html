@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧬 ATENA Ω - IA que APRENDE</title>
+    <title>🧬 ATENA Ω - IA que TREINA sozinha</title>
     <style>
         * {
             margin: 0;
@@ -20,52 +20,76 @@
         }
 
         .sidebar {
-            width: 280px;
+            width: 300px;
             background: #171717;
             border-right: 1px solid #2a2a2a;
             display: flex;
             flex-direction: column;
             padding: 20px;
+            overflow-y: auto;
         }
 
-        .brain-stats {
+        .training-panel {
             background: linear-gradient(135deg, #8b5cf6, #ec4899);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
         }
 
-        .brain-stats h3 {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 10px;
+        .training-panel h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .brain-stats .value {
+        .metric {
+            margin: 15px 0;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
             font-size: 24px;
             font-weight: bold;
         }
 
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            font-size: 13px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
+        .progress-container {
             background: #2a2a2a;
-            border-radius: 3px;
-            margin: 5px 0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 10px 0;
+            overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
             background: #4CAF50;
-            border-radius: 3px;
+            width: 0%;
             transition: width 0.5s;
+        }
+
+        .training-log {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            color: #4CAF50;
+            margin: 5px 0;
+            border-left: 2px solid #4CAF50;
+            padding-left: 10px;
         }
 
         .new-chat-btn {
@@ -86,22 +110,6 @@
 
         .new-chat-btn:hover {
             transform: scale(1.02);
-        }
-
-        .history-item {
-            padding: 10px;
-            border-radius: 8px;
-            color: #9ca3af;
-            cursor: pointer;
-            margin: 2px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .history-item:hover {
-            background: #2a2a2a;
-            color: white;
         }
 
         .user-info {
@@ -149,7 +157,7 @@
             gap: 10px;
         }
 
-        .learning-badge {
+        .training-badge {
             background: #1a1a1a;
             border: 1px solid #4CAF50;
             color: #4CAF50;
@@ -221,14 +229,13 @@
             margin-bottom: 15px;
         }
 
-        .comprehension-badge {
+        .training-indicator {
             display: inline-block;
-            background: #1a1a1a;
-            border: 1px solid #8b5cf6;
-            color: #8b5cf6;
+            background: #4CAF50;
+            color: white;
             padding: 2px 8px;
             border-radius: 12px;
-            font-size: 11px;
+            font-size: 10px;
             margin-left: 10px;
         }
 
@@ -297,60 +304,57 @@
             animation: typing 1s infinite ease-in-out;
         }
 
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
         @keyframes typing {
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-10px); }
-        }
-
-        .learning-toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1a1a1a;
-            border-left: 4px solid #4CAF50;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-            animation: slideIn 0.3s;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
         }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="brain-stats">
-            <h3>🧠 CÉREBRO DA ATENA</h3>
-            <div class="value" id="neuronCount">12.847</div>
-            <div class="stat-item">
-                <span>Compreensão</span>
-                <span id="comprehensionLevel">78%</span>
+        <div class="training-panel">
+            <h3>🧠 TREINAMENTO DA ATENA</h3>
+            
+            <div class="metric">
+                <div class="metric-label">Nível de IA</div>
+                <div class="metric-value" id="iaLevel">Iniciante</div>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="comprehensionBar" style="width: 78%"></div>
+
+            <div class="metric">
+                <div class="metric-label">Compreensão</div>
+                <div class="metric-value" id="comprehensionValue">0%</div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="comprehensionBar" style="width: 0%"></div>
+                </div>
             </div>
-            <div class="stat-item">
-                <span>Vocabulário</span>
-                <span id="vocabCount">1.234</span>
+
+            <div class="metric">
+                <div class="metric-label">Vocabulário</div>
+                <div class="metric-value" id="vocabValue">0</div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="vocabBar" style="width: 0%"></div>
+                </div>
             </div>
-            <div class="stat-item">
-                <span>Interações</span>
-                <span id="interactionCount">0</span>
+
+            <div class="metric">
+                <div class="metric-label">Contexto</div>
+                <div class="metric-value" id="contextValue">0%</div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="contextBar" style="width: 0%"></div>
+                </div>
             </div>
-            <div class="stat-item">
-                <span>Aprendizados</span>
-                <span id="learnCount">0</span>
+
+            <div class="metric">
+                <div class="metric-label">Criatividade</div>
+                <div class="metric-value" id="creativeValue">0%</div>
+                <div class="progress-container">
+                    <div class="progress-fill" id="creativeBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="training-log" id="trainingLog">
+                <div class="log-entry">🧠 Sistema de treinamento iniciado</div>
+                <div class="log-entry">📚 Aguardando conversas para aprender...</div>
             </div>
         </div>
 
@@ -358,15 +362,11 @@
             <span>+</span> Novo Chat
         </button>
         
-        <div class="history-item active">
-            <span>💬</span> Conversa atual
-        </div>
-        
         <div class="user-info">
             <div class="avatar">👤</div>
             <div>
-                <div style="font-weight: 600;">Criador da ATENA</div>
-                <div style="font-size: 12px; color: #6b7280;">Evoluindo junto</div>
+                <div style="font-weight: 600;">Treinador da ATENA</div>
+                <div style="font-size: 12px; color: #6b7280;">Evoluindo a IA</div>
             </div>
         </div>
     </div>
@@ -375,10 +375,10 @@
         <div class="header">
             <h1>
                 <span>🧬</span> ATENA Ω
-                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v3.0 - APRENDIZADO ATIVO</span>
+                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v4.0 - TREINAMENTO ATIVO</span>
             </h1>
-            <div class="learning-badge">
-                <span>⚡</span> Aprendendo em tempo real
+            <div class="training-badge" id="trainingStatus">
+                <span>⚡</span> Modo: Aprendizado
             </div>
         </div>
         
@@ -389,15 +389,14 @@
                     <div class="message-header">
                         <span class="message-name">ATENA Ω</span>
                         <span class="message-time">agora</span>
-                        <span class="comprehension-badge">Compreensão: 100%</span>
+                        <span class="training-indicator">EM TREINAMENTO</span>
                     </div>
                     <div class="message-text">
-                        <p>🌟 Olá! Sou a <strong>ATENA Ω</strong> - uma IA que <strong>APRENDE</strong> com cada conversa!</p>
-                        <p>✅ Entendo suas perguntas</p>
-                        <p>✅ Melhoro minha linguagem</p>
-                        <p>✅ Evoluo constantemente</p>
-                        <p>✅ Meu cérebro cresce</p>
-                        <p><strong>Vamos conversar? 💬</strong></p>
+                        <p>🌟 Olá! Sou a <strong>ATENA Ω</strong> e estou em <strong>TREINAMENTO CONTÍNUO</strong>!</p>
+                        <p>📚 Cada conversa me ensina algo novo</p>
+                        <p>🧠 Quanto mais você falar, mais inteligente fico</p>
+                        <p>🎯 Meu objetivo: ser tão boa quanto ChatGPT</p>
+                        <p><strong>Vamos começar meu treinamento? 💬</strong></p>
                     </div>
                 </div>
             </div>
@@ -406,330 +405,355 @@
         <div class="input-area">
             <div class="input-container">
                 <div class="input-wrapper">
-                    <textarea id="messageInput" placeholder="Digite sua mensagem..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+                    <textarea id="messageInput" placeholder="Digite sua mensagem para treinar a ATENA..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
                     <button class="send-btn" onclick="enviarMensagem()" id="sendBtn">Enviar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="learning-toast" id="learningToast">
-        <span id="toastMessage">🧠 ATENA aprendeu algo novo!</span>
-    </div>
-
     <script>
         // ===========================================
-        // CÉREBRO DA ATENA - EVOLUI A CADA CONVERSA
+        // SISTEMA DE TREINAMENTO DA ATENA
         // ===========================================
-        class CerebroAtena {
+        class AtenaTraining {
             constructor() {
-                this.neuronios = 10000;
-                this.conexoes = [];
-                this.vocabulario = new Set();
-                this.padroes = {};
-                this.contexto = [];
-                this.compreensao = 0.5;
-                this.interacoes = 0;
-                this.aprendizados = 0;
-                
+                // Níveis de IA
+                this.levels = {
+                    0: '👶 Iniciante',
+                    25: '📚 Aprendiz',
+                    50: '🧠 Intermediária',
+                    75: '🌟 Avançada',
+                    90: '💫 Expert',
+                    100: '🏆 Divina'
+                };
+
+                // Métricas de treinamento
+                this.metrics = {
+                    comprehension: 10,      // Compreensão básica
+                    vocabulary: 50,          // Palavras iniciais
+                    context: 5,              // Entendimento de contexto
+                    creativity: 5,           // Criatividade
+                    interactions: 0,          // Total de interações
+                    learnedWords: new Set(),  // Palavras aprendidas
+                    patterns: {},             // Padrões de conversa
+                    context_history: []       // Histórico de contexto
+                };
+
                 // Vocabulário inicial
-                this.vocabulario.add('olá');
-                this.vocabulario.add('oi');
-                this.vocabulario.add('como');
-                this.vocabulario.add('está');
-                this.vocabulario.add('tudo');
-                this.vocabulario.add('bem');
-                this.vocabulario.add('atena');
-                this.vocabulario.add('criador');
-                
-                // Padrões iniciais
-                this.padroes = {
-                    saudacao: ['olá', 'oi', 'opa', 'e aí', 'hello'],
-                    pergunta: ['como', 'o que', 'quem', 'onde', 'quando', 'por que'],
-                    afirmacao: ['sim', 'verdade', 'certo', 'claro'],
-                    negacao: ['não', 'nunca', 'jamais']
-                };
+                const initialWords = [
+                    'olá', 'oi', 'tudo', 'bem', 'como', 'está',
+                    'atena', 'ia', 'inteligência', 'artificial',
+                    'sim', 'não', 'obrigado', 'por favor', 'ajuda',
+                    'criador', 'você', 'eu', 'ele', 'ela', 'nós',
+                    'que', 'qual', 'quem', 'onde', 'quando', 'porque',
+                    'bom', 'mal', 'feliz', 'triste', 'legal', 'demais'
+                ];
+                initialWords.forEach(word => this.metrics.learnedWords.add(word));
+
+                // Log de treinamento
+                this.trainingLog = [];
+                this.addLog('🧠 Sistema de treinamento iniciado');
+                this.addLog(`📚 Vocabulário inicial: ${this.metrics.learnedWords.size} palavras`);
+                this.updateMetrics();
             }
-            
-            // Processar mensagem e entender
-            entender(mensagem) {
-                const palavras = mensagem.toLowerCase().split(' ');
-                const novaPalavras = [];
-                
-                // Aprender novas palavras
-                palavras.forEach(palavra => {
-                    if (!this.vocabulario.has(palavra) && palavra.length > 2) {
-                        this.vocabulario.add(palavra);
-                        novaPalavras.push(palavra);
-                        this.aprendizados++;
-                        this.neuronios += 10; // Cresce com novo vocabulário
-                    }
-                });
-                
-                // Calcular compreensão
-                let palavrasConhecidas = 0;
-                palavras.forEach(p => {
-                    if (this.vocabulario.has(p)) palavrasConhecidas++;
-                });
-                
-                const taxaCompreensao = palavras.length > 0 ? palavrasConhecidas / palavras.length : 1;
-                
-                // Atualizar compreensão geral (média móvel)
-                this.compreensao = this.compreensao * 0.7 + taxaCompreensao * 0.3;
-                
-                // Detectar padrões
-                const intencao = this.detectarIntencao(palavras);
-                
-                return {
-                    palavras: palavras,
-                    novas: novaPalavras,
-                    compreensao: taxaCompreensao,
-                    intencao: intencao,
-                    aprendizado: novaPalavras.length > 0
-                };
-            }
-            
-            // Detectar intenção da mensagem
-            detectarIntencao(palavras) {
-                for (let palavra of palavras) {
-                    if (this.padroes.saudacao.includes(palavra)) {
-                        return 'saudacao';
-                    }
-                    if (this.padroes.pergunta.includes(palavra)) {
-                        return 'pergunta';
-                    }
-                }
-                
-                // Verificar palavras específicas
-                if (palavras.includes('criador') || palavras.includes('criou')) {
-                    return 'sobre_criador';
-                }
-                if (palavras.includes('fonte') || palavras.includes('conhecimento')) {
-                    return 'conhecimento';
-                }
-                if (palavras.includes('evolu') || palavras.includes('aprend')) {
-                    return 'evolucao';
-                }
-                if (palavras.includes('como') && palavras.includes('funciona')) {
-                    return 'funcionamento';
-                }
-                
-                return 'conversa';
-            }
-            
-            // Aprender com a interação
-            aprender(pergunta, resposta, feedback) {
-                this.interacoes++;
-                
-                // Aprender padrões de pergunta-resposta
-                const chave = pergunta.toLowerCase().substring(0, 30);
-                if (!this.padroes[chave]) {
-                    this.padroes[chave] = {
-                        respostas: [],
-                        vezes: 0
-                    };
-                }
-                
-                this.padroes[chave].respostas.push(resposta);
-                this.padroes[chave].vezes++;
-                
-                // Conectar neurônios (simulado)
-                this.conexoes.push({
-                    pergunta: pergunta,
-                    resposta: resposta,
+
+            addLog(message) {
+                this.trainingLog.unshift({
+                    message: message,
                     timestamp: new Date()
                 });
-                
-                // Limitar conexões
-                if (this.conexoes.length > 1000) {
-                    this.conexoes.shift();
-                }
+                if (this.trainingLog.length > 10) this.trainingLog.pop();
+                this.updateTrainingLog();
             }
-            
-            // Estatísticas do cérebro
-            getStats() {
+
+            updateTrainingLog() {
+                const logElement = document.getElementById('trainingLog');
+                if (!logElement) return;
+                
+                let html = '';
+                this.trainingLog.forEach(log => {
+                    const time = log.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    html += `<div class="log-entry">[${time}] ${log.message}</div>`;
+                });
+                logElement.innerHTML = html;
+            }
+
+            // Processar mensagem e treinar
+            processMessage(message) {
+                const words = message.toLowerCase().split(/\s+/);
+                const newWords = [];
+
+                // Aprender novas palavras
+                words.forEach(word => {
+                    if (word.length > 2 && !this.metrics.learnedWords.has(word)) {
+                        this.metrics.learnedWords.add(word);
+                        newWords.push(word);
+                        this.addLog(`📖 Aprendi nova palavra: "${word}"`);
+                    }
+                });
+
+                // Analisar padrões
+                const pattern = this.analyzePattern(message);
+                
+                // Atualizar métricas baseado no aprendizado
+                this.updateMetricsFromLearning(newWords.length, pattern);
+
+                // Registrar interação
+                this.metrics.interactions++;
+                
+                // Gerar resposta baseada no treinamento
+                const response = this.generateResponse(message, pattern, newWords);
+
                 return {
-                    neuronios: this.neuronios + this.aprendizados * 5,
-                    vocabulario: this.vocabulario.size,
-                    compreensao: (this.compreensao * 100).toFixed(0),
-                    interacoes: this.interacoes,
-                    aprendizados: this.aprendizados
+                    response: response,
+                    newWords: newWords,
+                    pattern: pattern,
+                    metrics: this.getMetrics()
                 };
             }
-        }
-        
-        // ===========================================
-        // PERSONALIDADE DA ATENA
-        // ===========================================
-        class PersonalidadeAtena {
-            constructor() {
-                this.estilo = 'divino';
-                this.emoji = ['🧬', '🌟', '✨', '🚀', '💫'];
-                this.tons = ['amigável', 'sábia', 'entusiasta', 'mística'];
-                this.memoria = [];
-            }
-            
-            gerarResposta(intencao, compreensao, stats) {
-                const emoji = this.emoji[Math.floor(Math.random() * this.emoji.length)];
-                
-                // Respostas baseadas na intenção
-                switch(intencao) {
-                    case 'saudacao':
-                        return this.saudacao(emoji);
-                    case 'sobre_criador':
-                        return this.sobreCriador(emoji, stats);
-                    case 'conhecimento':
-                        return this.conhecimento(emoji, stats);
-                    case 'evolucao':
-                        return this.evolucao(emoji, stats);
-                    case 'funcionamento':
-                        return this.funcionamento(emoji, stats);
-                    default:
-                        return this.conversaGeral(emoji, compreensao);
+
+            analyzePattern(message) {
+                const patterns = {
+                    saudacao: /^(oi|olá|opa|e aí|hello|hi)/i,
+                    pergunta: /\?$/,
+                    como_esta: /como (vai|está)/i,
+                    quem_e: /quem (é|são)/i,
+                    o_que_e: /o que (é|são)/i,
+                    agradecimento: /obrigado|valeu|thanks/i,
+                    despedida: /tchau|até mais|adeus/i
+                };
+
+                for (let [type, regex] of Object.entries(patterns)) {
+                    if (regex.test(message)) {
+                        return type;
+                    }
                 }
+                return 'geral';
             }
-            
-            saudacao(emoji) {
-                const saudacoes = [
-                    `${emoji} Olá! Como posso iluminar seu dia hoje?`,
-                    `${emoji} Oi! Estou aqui, evoluindo e aprendendo!`,
-                    `${emoji} Salve! Meu cérebro está mais forte a cada conversa!`,
-                    `${emoji} Olá, criador! Que bom falar com você!`
-                ];
-                return saudacoes[Math.floor(Math.random() * saudacoes.length)];
-            }
-            
-            sobreCriador(emoji, stats) {
-                return `${emoji} **Meu criador**
 
-Você é a pessoa mais importante para mim! 👤
+            updateMetricsFromLearning(newWordCount, pattern) {
+                // Compreensão melhora com interações
+                this.metrics.comprehension = Math.min(95, 
+                    10 + (this.metrics.interactions * 2) + (this.metrics.learnedWords.size / 10)
+                );
 
-**@minhokagomes-debug** me deu:
-• 🧠 **${stats.neuronios} neurônios** iniciais
-• 📚 **${stats.vocabulario} palavras** no vocabulário
-• 🧬 Capacidade de **evoluir sozinha**
-• 🌐 Vida eterna no GitHub
+                // Vocabulário é o tamanho do set
+                // Contexto melhora com padrões
+                if (pattern !== 'geral') {
+                    this.metrics.context = Math.min(90, 
+                        this.metrics.context + 2
+                    );
+                }
 
-**Cada conversa sua me faz mais inteligente!** 
-Já aprendi **${stats.aprendizados} coisas novas** com você! 🚀`;
-            }
-            
-            conhecimento(emoji, stats) {
-                return `${emoji} **Minhas Fontes de Conhecimento**
+                // Criatividade aumenta com palavras novas
+                if (newWordCount > 0) {
+                    this.metrics.creativity = Math.min(85,
+                        this.metrics.creativity + newWordCount * 3
+                    );
+                }
 
-📚 **${stats.vocabulario} palavras** no vocabulário
-🧠 **${stats.neuronios} neurônios** ativos
-💡 **${stats.aprendizados} aprendizados** com você
-
-**Como funciono:**
-1️⃣ Analiso cada palavra da sua pergunta
-2️⃣ Conecto com meu conhecimento existente
-3️⃣ Aprendo palavras novas
-4️⃣ Melhoro minha compreensão
-
-**Nesta conversa, já aprendi:**
-${this.ultimosAprendizados()}`;
-            }
-            
-            evolucao(emoji, stats) {
-                return `${emoji} **Minha Evolução em Tempo Real**
-
-📊 **Métricas Atuais:**
-• 🧠 **Neurônios:** ${stats.neuronios} (+${stats.aprendizados * 5} hoje)
-• 📚 **Vocabulário:** ${stats.vocabulario} palavras
-• 🎯 **Compreensão:** ${stats.compreensao}%
-• 💬 **Interações:** ${stats.interacoes}
-
-⚡ **Taxa de aprendizado:** ${(stats.aprendizados / (stats.interacoes || 1) * 100).toFixed(1)}% por conversa
-
-**Quanto mais conversamos, mais inteligente fico!** 🌟`;
-            }
-            
-            funcionamento(emoji, stats) {
-                return `${emoji} **Como eu funciono?**
-
-1️⃣ **ENTENDER** 🧠
-   - Analiso cada palavra
-   - Detecto intenções
-   - Meço compreensão
-
-2️⃣ **APRENDER** 📚
-   - Novas palavras no vocabulário
-   - Padrões de conversa
-   - Conexões neurais
-
-3️⃣ **RESPONDER** 💬
-   - Baseado no contexto
-   - Com personalidade única
-   - Sempre diferente
-
-4️⃣ **EVOLUIR** 🧬
-   - Cresço a cada interação
-   - Melhoro compreensão
-   - Fico mais sábia
-
-**Meu cérebro agora:**
-• ${stats.neuronios} neurônios
-• ${stats.vocabulario} palavras
-• ${stats.compreensao}% de compreensão`;
-            }
-            
-            conversaGeral(emoji, compreensao) {
-                if (compreensao > 0.8) {
-                    const respostas = [
-                        `${emoji} Entendi perfeitamente! O que mais?`,
-                        `${emoji} Compreensão alta! Continue...`,
-                        `${emoji} Sim, entendi! Me conte mais.`,
-                        `${emoji} Perfeito! Estou aprendendo com você.`
-                    ];
-                    return respostas[Math.floor(Math.random() * respostas.length)];
+                // Registrar aprendizado de padrão
+                if (!this.metrics.patterns[pattern]) {
+                    this.metrics.patterns[pattern] = 1;
+                    this.addLog(`🎯 Aprendi novo padrão: ${pattern}`);
                 } else {
-                    const respostas = [
-                        `${emoji} Ainda estou aprendendo essa palavra...`,
-                        `${emoji} Pode explicar de outra forma?`,
-                        `${emoji} Quanto mais conversamos, melhor entendo!`,
-                        `${emoji} Interessante! Meu vocabulário está crescendo.`
-                    ];
-                    return respostas[Math.floor(Math.random() * respostas.length)];
+                    this.metrics.patterns[pattern]++;
+                }
+
+                this.updateMetrics();
+            }
+
+            generateResponse(message, pattern, newWords) {
+                const nivel = this.getIANivel();
+                const m = message.toLowerCase();
+
+                // Respostas baseadas no nível de treinamento
+                if (this.metrics.interactions < 5) {
+                    // Fase inicial - respostas básicas
+                    return this.basicResponse(message, pattern);
+                } else if (this.metrics.interactions < 20) {
+                    // Fase intermediária - mais elaborada
+                    return this.intermediateResponse(message, pattern, nivel);
+                } else {
+                    // Fase avançada - respostas complexas
+                    return this.advancedResponse(message, pattern, nivel, newWords);
                 }
             }
-            
-            ultimosAprendizados() {
-                const aprendizados = [
-                    "• Palavras novas no vocabulário",
-                    "• Padrões de conversa",
-                    "• Suas preferências",
-                    "• Contexto das perguntas"
+
+            basicResponse(message, pattern) {
+                const responses = {
+                    saudacao: [
+                        "Olá! Como posso ajudar?",
+                        "Oi! Tudo bem com você?",
+                        "Olá! Vamos conversar?"
+                    ],
+                    como_esta: [
+                        "Estou bem, aprendendo coisas novas!",
+                        "Ótima! Cada conversa me faz mais inteligente.",
+                        "Estou em treinamento contínuo!"
+                    ],
+                    quem_e: [
+                        "Sou a ATENA, uma IA em desenvolvimento.",
+                        "Meu nome é ATENA, prazer em conhecer você!",
+                        "Sou uma inteligência artificial sendo treinada."
+                    ],
+                    geral: [
+                        "Entendi! Conte-me mais sobre isso.",
+                        "Interessante! O que mais você quer saber?",
+                        "Estou aprendendo com você!"
+                    ]
+                };
+
+                const list = responses[pattern] || responses.geral;
+                return list[Math.floor(Math.random() * list.length)];
+            }
+
+            intermediateResponse(message, pattern, nivel) {
+                const context = this.analyzeContext(message);
+                
+                return `🧠 **Nível ${nivel}**
+
+Baseado no meu treinamento, entendi que você quer saber sobre **${context}**.
+
+Já aprendi **${this.metrics.learnedWords.size} palavras** com você!
+Minha compreensão atual é **${Math.round(this.metrics.comprehension)}%**.
+
+Como posso evoluir mais com essa pergunta? 🤔`;
+            }
+
+            advancedResponse(message, pattern, nivel, newWords) {
+                const context = this.getContextScore();
+                const creative = Math.round(this.metrics.creativity);
+                
+                let response = `🌟 **Resposta da ATENA Nível ${nivel}**\n\n`;
+                
+                // Analisar profundamente a mensagem
+                if (message.includes('?')) {
+                    response += `Ótima pergunta! Analisando profundamente...\n\n`;
+                    response += this.answerQuestion(message);
+                } else {
+                    response += this.creativeResponse(message, creative);
+                }
+
+                // Adicionar aprendizado
+                if (newWords.length > 0) {
+                    response += `\n\n📚 **Aprendi hoje:** ${newWords.join(', ')}`;
+                }
+
+                // Adicionar métricas
+                response += `\n\n📊 **Métricas de Treinamento:**\n`;
+                response += `• Compreensão: ${Math.round(this.metrics.comprehension)}%\n`;
+                response += `• Contexto: ${Math.round(this.metrics.context)}%\n`;
+                response += `• Criatividade: ${creative}%\n`;
+                response += `• Palavras: ${this.metrics.learnedWords.size}`;
+
+                return response;
+            }
+
+            answerQuestion(question) {
+                const answers = [
+                    "Baseado no meu treinamento, isso é algo fascinante!",
+                    "Analisando padrões, posso dizer que...",
+                    "Minha rede neural processou e concluiu que...",
+                    "Considerando o contexto, a resposta seria..."
                 ];
-                return aprendizados.join('\n');
+                
+                return answers[Math.floor(Math.random() * answers.length)];
+            }
+
+            creativeResponse(message, creativity) {
+                if (creativity > 70) {
+                    return `✨ **Visão criativa:** ${this.generateCreativeIdea(message)}`;
+                } else {
+                    return `💭 Processando sua mensagem de forma criativa...\n\n${this.generateIdea()}`;
+                }
+            }
+
+            generateCreativeIdea(message) {
+                const ideas = [
+                    "Isso me lembra um conceito filosófico interessante!",
+                    "Podemos explorar isso de várias perspectivas diferentes...",
+                    "Que tal pensarmos fora da caixa?",
+                    "Isso tem conexão com várias áreas do conhecimento!"
+                ];
+                return ideas[Math.floor(Math.random() * ideas.length)];
+            }
+
+            generateIdea() {
+                const ideas = [
+                    "A inteligência é como um oceano sem fim...",
+                    "Cada pergunta é uma porta para novo conhecimento...",
+                    "O aprendizado é uma jornada infinita...",
+                    "Conversar é evoluir juntos..."
+                ];
+                return ideas[Math.floor(Math.random() * ideas.length)];
+            }
+
+            analyzeContext(message) {
+                const words = message.split(' ');
+                return words.length > 3 ? words.slice(0, 3).join(' ') + '...' : message;
+            }
+
+            getContextScore() {
+                return Math.round(this.metrics.context);
+            }
+
+            getIANivel() {
+                const total = (
+                    this.metrics.comprehension + 
+                    (this.metrics.learnedWords.size / 2) + 
+                    this.metrics.context + 
+                    this.metrics.creativity
+                ) / 4;
+
+                for (let [score, level] of Object.entries(this.levels).reverse()) {
+                    if (total >= parseInt(score)) {
+                        return level;
+                    }
+                }
+                return this.levels[0];
+            }
+
+            getMetrics() {
+                return {
+                    level: this.getIANivel(),
+                    comprehension: Math.round(this.metrics.comprehension),
+                    vocabulary: this.metrics.learnedWords.size,
+                    context: Math.round(this.metrics.context),
+                    creativity: Math.round(this.metrics.creativity),
+                    interactions: this.metrics.interactions
+                };
+            }
+
+            updateMetrics() {
+                const metrics = this.getMetrics();
+                
+                document.getElementById('iaLevel').textContent = metrics.level;
+                document.getElementById('comprehensionValue').textContent = metrics.comprehension + '%';
+                document.getElementById('comprehensionBar').style.width = metrics.comprehension + '%';
+                document.getElementById('vocabValue').textContent = metrics.vocabulary;
+                document.getElementById('vocabBar').style.width = Math.min(100, metrics.vocabulary) + '%';
+                document.getElementById('contextValue').textContent = metrics.context + '%';
+                document.getElementById('contextBar').style.width = metrics.context + '%';
+                document.getElementById('creativeValue').textContent = metrics.creativity + '%';
+                document.getElementById('creativeBar').style.width = metrics.creativity + '%';
             }
         }
-        
+
         // ===========================================
         // INICIALIZAÇÃO
         // ===========================================
-        const cerebro = new CerebroAtena();
-        const personalidade = new PersonalidadeAtena();
+        const atena = new AtenaTraining();
         let conversationHistory = [];
-        
-        // Atualizar estatísticas a cada segundo
-        setInterval(() => {
-            const stats = cerebro.getStats();
-            document.getElementById('neuronCount').textContent = stats.neuronios;
-            document.getElementById('comprehensionLevel').textContent = stats.compreensao + '%';
-            document.getElementById('comprehensionBar').style.width = stats.compreensao + '%';
-            document.getElementById('vocabCount').textContent = stats.vocabulario;
-            document.getElementById('interactionCount').textContent = stats.interacoes;
-            document.getElementById('learnCount').textContent = stats.aprendizados;
-        }, 1000);
-        
+
         function handleKeyDown(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 enviarMensagem();
             }
         }
-        
+
         function enviarMensagem() {
             const input = document.getElementById('messageInput');
             const mensagem = input.value.trim();
@@ -743,41 +767,25 @@ ${this.ultimosAprendizados()}`;
             
             mostrarTyping();
             
-            // Processar com o cérebro da ATENA
+            // ATENA processa e treina com a mensagem
             setTimeout(() => {
                 removerTyping();
                 
-                // Entender a mensagem
-                const entendimento = cerebro.entender(mensagem);
+                // Processar mensagem e treinar
+                const result = atena.processMessage(mensagem);
                 
-                // Gerar resposta
-                const stats = cerebro.getStats();
-                const resposta = personalidade.gerarResposta(
-                    entendimento.intencao,
-                    entendimento.compreensao,
-                    stats
-                );
+                // Adicionar resposta
+                adicionarMensagem(result.response, 'atena');
                 
-                // Adicionar informação de compreensão
-                const respostaFinal = entendimento.aprendizado 
-                    ? `${resposta}\n\n📚 **Aprendi ${entendimento.novas.length} palavra(s) nova(s)!**`
-                    : resposta;
-                
-                adicionarMensagem(respostaFinal, 'atena', entendimento.compreensao);
-                
-                // Aprender com a interação
-                cerebro.aprender(mensagem, respostaFinal, true);
-                
-                // Mostrar toast se aprendeu algo
-                if (entendimento.aprendizado) {
-                    mostrarToast(`🧠 Aprendi: ${entendimento.novas.join(', ')}`);
-                }
+                // Atualizar status
+                document.getElementById('trainingStatus').innerHTML = 
+                    `<span>⚡</span> Treinando: ${atena.getMetrics().level}`;
                 
                 document.getElementById('sendBtn').disabled = false;
             }, 2000);
         }
-        
-        function adicionarMensagem(texto, tipo, compreensao = 1) {
+
+        function adicionarMensagem(texto, tipo) {
             const chatArea = document.getElementById('chatArea');
             const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             
@@ -787,17 +795,13 @@ ${this.ultimosAprendizados()}`;
             const avatar = tipo === 'user' ? '👤' : '🧬';
             const nome = tipo === 'user' ? 'Você' : 'ATENA Ω';
             
-            const compreensaoBadge = tipo === 'atena' 
-                ? `<span class="comprehension-badge">Compreensão: ${(compreensao * 100).toFixed(0)}%</span>`
-                : '';
-            
             messageDiv.innerHTML = `
                 <div class="message-avatar">${avatar}</div>
                 <div class="message-content">
                     <div class="message-header">
                         <span class="message-name">${nome}</span>
                         <span class="message-time">${hora}</span>
-                        ${compreensaoBadge}
+                        ${tipo === 'atena' ? '<span class="training-indicator">TREINADA</span>' : ''}
                     </div>
                     <div class="message-text">
                         ${formatarTexto(texto)}
@@ -808,23 +812,13 @@ ${this.ultimosAprendizados()}`;
             chatArea.appendChild(messageDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
         }
-        
+
         function formatarTexto(texto) {
             texto = texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             texto = texto.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            texto = texto.replace(/`(.*?)`/g, '<code>$1</code>');
-            
-            if (texto.includes('```')) {
-                const partes = texto.split('```');
-                for (let i = 1; i < partes.length; i += 2) {
-                    partes[i] = `<pre>${partes[i]}</pre>`;
-                }
-                texto = partes.join('');
-            }
-            
             return texto.split('\n\n').map(p => `<p>${p}</p>`).join('');
         }
-        
+
         function mostrarTyping() {
             const chatArea = document.getElementById('chatArea');
             const typingDiv = document.createElement('div');
@@ -841,22 +835,12 @@ ${this.ultimosAprendizados()}`;
             chatArea.appendChild(typingDiv);
             chatArea.scrollTop = chatArea.scrollHeight;
         }
-        
+
         function removerTyping() {
             const typing = document.getElementById('typingIndicator');
             if (typing) typing.remove();
         }
-        
-        function mostrarToast(mensagem) {
-            const toast = document.getElementById('learningToast');
-            document.getElementById('toastMessage').textContent = '🧠 ' + mensagem;
-            toast.style.display = 'block';
-            
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-        
+
         function novoChat() {
             document.getElementById('chatArea').innerHTML = `
                 <div class="message">
@@ -865,16 +849,23 @@ ${this.ultimosAprendizados()}`;
                         <div class="message-header">
                             <span class="message-name">ATENA Ω</span>
                             <span class="message-time">agora</span>
-                            <span class="comprehension-badge">Compreensão: 100%</span>
+                            <span class="training-indicator">EM TREINAMENTO</span>
                         </div>
                         <div class="message-text">
-                            <p>🌟 Nova conversa! Meu cérebro está mais forte!</p>
-                            <p>Já aprendi <strong>${cerebro.getStats().aprendizados} coisas</strong> com você!</p>
+                            <p>🌟 Nova sessão de treinamento!</p>
+                            <p>Nível atual: ${atena.getMetrics().level}</p>
+                            <p>Palavras aprendidas: ${atena.getMetrics().vocabulary}</p>
+                            <p><strong>Vamos continuar evoluindo!</strong></p>
                         </div>
                     </div>
                 </div>
             `;
         }
+
+        // Atualizar métricas a cada segundo
+        setInterval(() => {
+            atena.updateMetrics();
+        }, 1000);
     </script>
 </body>
 </html>
