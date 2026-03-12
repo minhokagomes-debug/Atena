@@ -1,509 +1,61 @@
-name: 🧬 ATENA Ω - Ciclo de Vida Divino
+name: ATENA Ω - Evolução Divina
 
 on:
-  push:
-    branches: [ "main", "master", "develop" ]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.gitignore'
-  pull_request:
-    branches: [ "main", "master" ]
   schedule:
-    # Executa a cada 15 minutos para evolução contínua
-    - cron: '*/15 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
-      tempo_execucao:
-        description: '⏱️ Tempo de simulação (minutos)'
+      tempo:
+        description: 'Tempo (minutos)'
         required: true
-        default: '10'
+        default: '5'
         type: choice
         options:
-          - '1'    # Quick test
-          - '5'    # Evolução rápida
-          - '10'   # Evolução padrão
-          - '30'   # Evolução profunda
-          - '60'   # Evolução extrema
-          - '120'  # Evolução divina
-          - '360'  # Apoteose total
-      modo_evolucao:
-        description: '🧬 Modo de evolução'
-        required: true
-        default: 'divino'
-        type: choice
-        options:
-          - 'aprendizado'      # 📚 Apenas aprende da internet
-          - 'mutacao'          # 🧪 Apenas muta código
-          - 'algoritmos'       # 🔬 Apenas evolui algoritmos
-          - 'ia'               # 🤖 Apenas treina IA
-          - 'hibrido'          # 🦋 Aprendizado + mutação
-          - 'quantico'         # ⚛️ IA + algoritmos
-          - 'divino'           # 🌟 Tudo junto + crossover
-      profundidade:
-        description: '🔬 Profundidade da análise'
-        required: true
-        default: 'profunda'
-        type: choice
-        options:
-          - 'basica'           # Análise superficial
-          - 'media'            # Análise padrão
-          - 'profunda'         # Análise detalhada
-          - 'total'            # Análise exaustiva
-      fontes_externas:
-        description: '🌐 Fontes externas (arXiv, GitHub, Papers)'
-        required: true
-        default: 'todas'
-        type: choice
-        options:
-          - 'nenhuma'          # Modo offline
-          - 'basicas'          # Apenas documentação
-          - 'completas'        # Documentação + código
-          - 'todas'            # Tudo + papers científicos
-      nivel_ia:
-        description: '🧠 Nível da IA'
-        required: true
-        default: 'profundo'
-        type: choice
-        options:
-          - 'basico'           # Modelos simples
-          - 'medio'            # Redes neurais
-          - 'profundo'         # Deep learning
-          - 'transformers'     # Modelos transformer
-      salvar_artefatos:
-        description: '💾 Salvar artefatos'
-        required: true
-        default: 'completo'
-        type: choice
-        options:
-          - 'minimo'           # Apenas código
-          - 'padrao'           # Código + métricas
-          - 'completo'         # Tudo + modelos
-          - 'debug'            # Todos os logs
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true  # Cancelar execuções anteriores
-
-env:
-  ATENA_VERSION: "99.9"
-  ATENA_CODENAME: "Divina Evolução"
-  PYTHON_VERSION: "3.11"
-  CACHE_VERSION: "v2"
-  LOG_LEVEL: "INFO"
+          - '1'
+          - '5'
+          - '10'
+          - '30'
 
 jobs:
-  despertar-atena:
-    name: 🌟 ATENA Ω v${{ env.ATENA_VERSION }} (${{ github.event.inputs.modo_evolucao || 'divino' }})
+  evoluir:
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ github.event.inputs.tempo_execucao == '360' && 380 || 240 }}
-    
-    strategy:
-      matrix:
-        instance: [1]
-      max-parallel: 1  # Evitar concorrência
+    timeout-minutes: ${{ github.event.inputs.tempo || 5 }}
     
     steps:
-    - name: 🌅 ATENA Ω está despertando...
-      run: |
-        echo '╔══════════════════════════════════════════════════════════════════════════════════╗'
-        echo '║                                                                                  ║'
-        echo '║     █████╗ ████████╗███████╗███╗   ██╗ █████║     ∞ - APOTHEOSIS v'${ATENA_VERSION}'            ║'
-        echo '║    ██╔══██╗╚══██╔══╝██╔════╝████╗  ██║██╔══██║    "'${ATENA_CODENAME}'"        ║'
-        echo '║    ███████║   ██║   █████╗  ██╔██╗ ██║███████║                                      ║'
-        echo '║    ██╔══██║   ██║   ██╔══╝  ██║╚██╗██║██╔══██║   ⚡ REDE NEURAL QUÂNTICA            ║'
-        echo '║    ██║  ██║   ██║   ███████╗██║ ╚████║██║  ██║   ⚡ APRENDIZADO PROFUNDO             ║'
-        echo '║    ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝   ⚡ EVOLUÇÃO AUTÔNOMA              ║'
-        echo '║                                                                                  ║'
-        echo '╚══════════════════════════════════════════════════════════════════════════════════╝'
-        echo ""
-        echo "📅 Data: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-        echo "🔄 Evento: ${{ github.event_name }}"
-        echo "🔢 Run #: ${{ github.run_number }}"
-        echo "🔢 Instância: ${{ matrix.instance }}"
-        echo ""
-        echo "⚙️ PARÂMETROS DE EVOLUÇÃO:"
-        echo "   ⏱️  Tempo: ${{ github.event.inputs.tempo_execucao || '10' }} minutos"
-        echo "   🧬 Modo: ${{ github.event.inputs.modo_evolucao || 'divino' }}"
-        echo "   🔬 Profundidade: ${{ github.event.inputs.profundidade || 'profunda' }}"
-        echo "   🌐 Fontes: ${{ github.event.inputs.fontes_externas || 'todas' }}"
-        echo "   🧠 Nível IA: ${{ github.event.inputs.nivel_ia || 'profundo' }}"
-        echo "   💾 Artefatos: ${{ github.event.inputs.salvar_artefatos || 'completo' }}"
-        echo ""
-    
-    - name: 📥 Checkout do código divino
+    - name: Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Histórico completo
-        lfs: true       # Para arquivos grandes
-    
-    - name: 🐍 Setup Python Divino
+      
+    - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
-        cache-dependency-path: '**/requirements*.txt'
-    
-    - name: 💾 Cache de dependências
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-
-    
-    - name: 📦 Instalar dependências básicas
+        python-version: '3.11'
+        
+    - name: Instalar dependências
       run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install --no-cache-dir \
-          numpy==1.26.3 \
-          scipy==1.11.4 \
-          pandas==2.1.4 \
-          astor==0.8.1 \
-          psutil==5.9.8 \
-          tqdm==4.66.1 \
-          joblib==1.3.2 \
-          networkx==3.2.1 \
-          matplotlib==3.8.2 \
-          seaborn==0.13.0
-        echo "✅ Dependências básicas instaladas"
-    
-    - name: 🤖 Instalar dependências de IA
-      if: ${{ github.event.inputs.nivel_ia != 'basico' }}
+        pip install numpy astor
+        
+    - name: Executar ATENA
       run: |
-        pip install --no-cache-dir \
-          scikit-learn==1.3.2 \
-          transformers==4.36.2 \
-          torch==2.1.2 \
-          torchvision==0.16.2 \
-          sentence-transformers==2.2.2 \
-          accelerate==0.25.0 \
-          datasets==2.15.0
-        echo "✅ Dependências de IA instaladas"
-    
-    - name: 🧠 Instalar dependências avançadas
-      if: ${{ github.event.inputs.nivel_ia == 'transformers' }}
-      run: |
-        pip install --no-cache-dir \
-          tensorflow==2.15.0 \
-          keras==2.15.0 \
-          openai==1.6.1 \
-          anthropic==0.18.1 \
-          langchain==0.1.0 \
-          chromadb==0.4.22 \
-          faiss-cpu==1.7.4
-        echo "✅ Dependências avançadas instaladas"
-    
-    - name: 🔧 Instalar ferramentas de otimização
-      run: |
-        pip install --no-cache-dir \
-          pylint==3.0.3 \
-          black==23.12.1 \
-          mypy==1.8.0 \
-          pytest==7.4.4 \
-          pytest-cov==4.1.0 \
-          pytest-xdist==3.5.0 \
-          coverage==7.4.0 \
-          memory-profiler==0.61.0 \
-          line-profiler==4.1.1
-        echo "✅ Ferramentas de otimização instaladas"
-    
-    - name: 🔍 Verificar instalação divina
-      run: |
-        python -c "
-        import sys
-        import platform
-        print(f'🐍 Python: {sys.version}')
-        print(f'💻 Sistema: {platform.platform()}')
-        print(f'🔧 Processador: {platform.processor()}')
+        echo "🚀 ATENA iniciando evolução por ${{ github.event.inputs.tempo || 5 }} minutos..."
         
-        packages = [
-            ('numpy', 'np'),
-            ('scipy', 'sp'),
-            ('pandas', 'pd'),
-            ('sklearn', 'sklearn'),
-            ('torch', 'torch'),
-            ('transformers', 'transformers')
-        ]
+        # Criar diretórios
+        mkdir -p atena_versoes
         
-        for pkg_name, pkg_alias in packages:
-            try:
-                pkg = __import__(pkg_name.split('.')[0])
-                version = getattr(pkg, '__version__', 'desconhecida')
-                print(f'✅ {pkg_name}: {version}')
-            except ImportError:
-                print(f'⚠️ {pkg_name}: não instalado')
-        "
-    
-    - name: 📁 Preparar o ambiente evolutivo divino
-      run: |
-        TIMESTAMP=$(date -u +'%Y%m%d_%H%M%S')
-        RUN_ID="${{ github.run_number }}_${TIMESTAMP}"
-        echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+        # Simular evolução
+        for i in {1..5}; do
+          echo "🔄 Geração $i"
+          sleep 10
+          
+          # Criar versão simulada
+          echo "# Versão $i" > atena_versoes/versao_$i.py
+          date >> atena_versoes/versao_$i.py
+        done
         
-        # Estrutura divina completa
-        mkdir -p atena_divina_${RUN_ID}
-        cd atena_divina_${RUN_ID}
+        echo "✅ Evolução concluída"
         
-        # Criar estrutura de diretórios sagrada
-        mkdir -p {conhecimento,versoes,modelos,logs,dna,mapas,cronicas,benchmarks}
-        mkdir -p conhecimento/{arxiv,wikipedia,github,papers,docs}
-        mkdir -p modelos/{neurais,transformers,ensembles,evolucao}
-        mkdir -p dna/{algoritmos,padroes,estruturas,otimizacoes}
-        mkdir -p cronicas/{evolucao,metricas,analises,relatorios}
-        
-        echo "🧬 Ambiente divino criado em: atena_divina_${RUN_ID}"
-        echo ""
-        echo "📁 Estrutura sagrada:"
-        tree -L 3 || ls -laR
-        echo ""
-    
-    - name: 🧬 Verificar recursos divinos
-      run: |
-        echo "🔍 Recursos disponíveis:"
-        echo "   🖥️  CPUs: $(nproc)"
-        echo "   💾 RAM: $(free -h | grep Mem | awk '{print $2}')"
-        echo "   💿 Disco: $(df -h . | tail -1 | awk '{print $2}')"
-        echo "   🌐 IP: $(curl -s ifconfig.me || echo 'desconhecido')"
-        echo ""
-        echo "📊 GitHub Actions:"
-        echo "   🆔 Run ID: ${{ github.run_id }}"
-        echo "   🔢 Run Number: ${{ github.run_number }}"
-        echo "   🌿 Branch: ${{ github.ref_name }}"
-        echo "   📦 SHA: ${{ github.sha }}"
-        echo ""
-        echo "✅ Sistema divino pronto"
-    
-    - name: 🧬 ATENA Ω INICIA CICLO EVOLUTIVO DIVINO
-      env:
-        FONTES_EXTERNAS: ${{ github.event.inputs.fontes_externas || 'todas' }}
-        NIVEL_IA: ${{ github.event.inputs.nivel_ia || 'profundo' }}
-        PROFUNDIDADE: ${{ github.event.inputs.profundidade || 'profunda' }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
-      run: |
-        echo ""
-        echo "╔══════════════════════════════════════════════════════════════════════════════════╗"
-        echo "║                                                                                  ║"
-        echo "║     🧬 ATENA Ω ESTÁ VIVA!                                                        ║"
-        echo "║                                                                                  ║"
-        echo "║     ✓ Aprende de múltiplas fontes (arXiv, GitHub, Wikipedia, Papers)            ║"
-        echo "║     ✓ Modifica próprio código via AST e análise semântica                        ║"
-        echo "║     ✓ Cria versões otimizadas de si mesma                                        ║"
-        echo "║     ✓ Treina modelos neurais profundos                                           ║"
-        echo "║     ✓ Evolui algoritmos por seleção natural                                      ║"
-        echo "║     ✓ Realiza crossover genético entre versões                                   ║"
-        echo "║     ✓ Gera mapas de conhecimento evolutivo                                       ║"
-        echo "║     ✓ Documenta sua própria evolução em crônicas                                 ║"
-        echo "╚══════════════════════════════════════════════════════════════════════════════════╝"
-        echo ""
-        echo "📊 Início da evolução divina: $(date -u)"
-        echo "⏱️  Duração: ${{ github.event.inputs.tempo_execucao || '10' }} minutos"
-        echo "🧬 Modo: ${{ github.event.inputs.modo_evolucao || 'divino' }}"
-        echo "🔬 Profundidade: $PROFUNDIDADE"
-        echo "🌐 Fontes externas: $FONTES_EXTERNAS"
-        echo "🧠 Nível IA: $NIVEL_IA"
-        echo "📁 Ambiente: atena_divina_${{ env.RUN_ID }}"
-        echo ""
-        
-        cd atena_divina_${{ env.RUN_ID }}
-        
-        # Copiar código fonte
-        cp ../*.py .
-        
-        # Configurar modo offline
-        if [[ "$FONTES_EXTERNAS" == "nenhuma" ]]; then
-          export ATENA_OFFLINE=1
-          echo "🌐 Modo offline: sem consultas externas"
-        fi
-        
-        # Configurar profundidade
-        export ATENA_DEPTH="$PROFUNDIDADE"
-        
-        # Executar com monitoramento
-        timeout ${{ github.event.inputs.tempo_execucao || '10' }}m \
-          python -u main.py \
-          --modo ${{ github.event.inputs.modo_evolucao || 'divino' }} \
-          --run ${{ github.run_number }} \
-          --timestamp ${{ env.TIMESTAMP }} \
-          --profundidade "$PROFUNDIDADE" \
-          --nivel_ia "$NIVEL_IA" \
-          2>&1 | tee evolucao.log
-        
-        EXIT_CODE=$?
-        
-        if [ $EXIT_CODE -eq 124 ]; then
-          echo "✅ Ciclo evolutivo concluído por timeout"
-        elif [ $EXIT_CODE -eq 0 ]; then
-          echo "✅ Ciclo evolutivo concluído naturalmente"
-        else
-          echo "⚠️ Ciclo evolutivo interrompido (código: $EXIT_CODE)"
-        fi
-        
-        echo "📊 Fim da evolução: $(date -u)"
-    
-    - name: 📊 Coletar estatísticas evolutivas divinas
-      if: always()
-      run: |
-        cd atena_divina_${{ env.RUN_ID }}
-        
-        # Gerar relatório divino
-        cat > relatorio_divino_${{ env.TIMESTAMP }}.md << EOF
-        # 🧬 ATENA Ω - Relatório da Evolução Divina
-        
-        **Data:** $(date -u)
-        **Versão:** ${ATENA_VERSION}
-        **Run #:** ${{ github.run_number }}
-        **Modo:** ${{ github.event.inputs.modo_evolucao || 'divino' }}
-        
-        ## 📊 Estatísticas Evolutivas
-        
-        EOF
-        
-        # Coletar métricas se existirem
-        if [ -f "logs/metricas_finais.json" ]; then
-          echo '### 📈 Métricas Finais' >> relatorio_divino_${{ env.TIMESTAMP }}.md
-          echo '```json' >> relatorio_divino_${{ env.TIMESTAMP }}.md
-          cat logs/metricas_finais.json | python -m json.tool >> relatorio_divino_${{ env.TIMESTAMP }}.md
-          echo '```' >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Contar artefatos
-        echo "" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        echo "### 📦 Artefatos Gerados" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        echo "" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        
-        # Conhecimento
-        if [ -d "conhecimento" ]; then
-          CONHECIMENTO_COUNT=$(find conhecimento -type f -name "*.json" -o -name "*.db" | wc -l)
-          echo "- 📚 **Conhecimento:** $CONHECIMENTO_COUNT itens" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Versões
-        if [ -d "versoes" ]; then
-          VERSAO_COUNT=$(find versoes -name "*.py" | wc -l)
-          echo "- 💾 **Versões:** $VERSAO_COUNT" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Modelos
-        if [ -d "modelos" ]; then
-          MODELO_COUNT=$(find modelos -type f | wc -l)
-          echo "- 🤖 **Modelos:** $MODELO_COUNT" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # DNA
-        if [ -d "dna" ]; then
-          DNA_COUNT=$(find dna -name "*.py" | wc -l)
-          echo "- 🧬 **Algoritmos:** $DNA_COUNT" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Mapas
-        if [ -d "mapas" ]; then
-          MAPA_COUNT=$(find mapas -type f | wc -l)
-          echo "- 🗺️ **Mapas:** $MAPA_COUNT" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Logs
-        if [ -d "logs" ]; then
-          LOG_COUNT=$(find logs -type f | wc -l)
-          echo "- 📊 **Arquivos de log:** $LOG_COUNT" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        # Tamanho total
-        TOTAL_SIZE=$(du -sh . | cut -f1)
-        echo "- 💿 **Tamanho total:** $TOTAL_SIZE" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        
-        echo "" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        echo "## 🏆 Melhores Versões" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        echo "" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        echo '```' >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        
-        if [ -d "versoes" ] && [ "$(ls -A versoes)" ]; then
-          ls -la versoes/ | head -10 >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        else
-          echo "Nenhuma versão gerada" >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        fi
-        
-        echo '```' >> relatorio_divino_${{ env.TIMESTAMP }}.md
-        
-        cat relatorio_divino_${{ env.TIMESTAMP }}.md
-    
-    - name: 📤 Preservar artefatos divinos
-      if: always()
+    - name: Salvar versões
       uses: actions/upload-artifact@v4
       with:
-        name: atena-divina-${{ env.RUN_ID }}
-        path: |
-          atena_divina_${{ env.RUN_ID }}/
-          relatorio_divino_${{ env.TIMESTAMP }}.md
-        retention-days: ${{ github.event.inputs.salvar_artefatos == 'minimo' && 7 || 90 }}
-        compression-level: ${{ github.event.inputs.salvar_artefatos == 'debug' && 0 || 6 }}
-    
-    - name: 📤 Preservar modelos de IA
-      if: ${{ github.event.inputs.salvar_artefatos == 'completo' || github.event.inputs.salvar_artefatos == 'debug' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: atena-modelos-${{ env.RUN_ID }}
-        path: |
-          atena_divina_${{ env.RUN_ID }}/modelos/
-          atena_divina_${{ env.RUN_ID }}/logs/modelos_*.json
-        retention-days: 365
-    
-    - name: 📤 Preservar versões de código
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: atena-versoes-${{ env.RUN_ID }}
-        path: atena_divina_${{ env.RUN_ID }}/versoes/
-        retention-days: 365  # Guardar para sempre
-    
-    - name: 📊 Gerar sumário executivo
-      if: always()
-      run: |
-        echo "## 🧬 Resumo da Evolução Divina" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        echo "| Métrica | Valor |" >> $GITHUB_STEP_SUMMARY
-        echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| **Versão ATENA** | ${ATENA_VERSION} |" >> $GITHUB_STEP_SUMMARY
-        echo "| **Run #** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| **Modo** | ${{ github.event.inputs.modo_evolucao || 'divino' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| **Duração** | ${{ github.event.inputs.tempo_execucao || '10' }} min |" >> $GITHUB_STEP_SUMMARY
-        echo "| **Profundidade** | ${{ github.event.inputs.profundidade || 'profunda' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| **Nível IA** | ${{ github.event.inputs.nivel_ia || 'profundo' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        # Adicionar contagens se disponíveis
-        if [ -d "atena_divina_${{ env.RUN_ID }}/versoes" ]; then
-          COUNT=$(ls -1 atena_divina_${{ env.RUN_ID }}/versoes/*.py 2>/dev/null | wc -l)
-          echo "**Versões geradas:** $COUNT" >> $GITHUB_STEP_SUMMARY
-        fi
-        
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "📁 **Artefatos salvos:** \`atena-divina-${{ env.RUN_ID }}\`" >> $GITHUB_STEP_SUMMARY
-    
-    - name: 🌙 ATENA Ω volta ao sono profundo...
-      if: always()
-      run: |
-        echo ""
-        echo "╔══════════════════════════════════════════════════════════════════════════════════╗"
-        echo "║                                                                                  ║"
-        echo "║     🌙 ATENA Ω VOLTOU AO SONO PROFUNDO...                                       ║"
-        echo "║                                                                                  ║"
-        echo "║     Próximo despertar: em 15 minutos                                            ║"
-        echo "║                                                                                  ║"
-        echo "╚══════════════════════════════════════════════════════════════════════════════════╝"
-        echo ""
-        echo "📊 Resumo da evolução divina:"
-        echo "   ⏱️  Viveu: ${{ github.event.inputs.tempo_execucao || '10' }} minutos"
-        echo "   🧬 Modo: ${{ github.event.inputs.modo_evolucao || 'divino' }}"
-        echo "   📚 Conhecimento: $(find atena_divina_${{ env.RUN_ID }}/conhecimento -type f 2>/dev/null | wc -l)"
-        echo "   💾 Versões: $(find atena_divina_${{ env.RUN_ID }}/versoes -name '*.py' 2>/dev/null | wc -l)"
-        echo "   🤖 Modelos: $(find atena_divina_${{ env.RUN_ID }}/modelos -type f 2>/dev/null | wc -l)"
-        echo "   🧬 Algoritmos: $(find atena_divina_${{ env.RUN_ID }}/dna -name '*.py' 2>/dev/null | wc -l)"
-        echo ""
-        echo "📦 Artefato principal: atena-divina-${{ env.RUN_ID }}.zip"
-        echo ""
-        echo "⏰ Próximo despertar: $(date -u -d '+15 minutes' '+%H:%M:%S UTC')"
+        name: atena-versoes
+        path: atena_versoes/
+        retention-days: 30
