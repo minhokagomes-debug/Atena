@@ -108,8 +108,8 @@ jobs:
       run: |
         echo '╔══════════════════════════════════════════════════════════════════════════════════╗'
         echo '║                                                                                  ║'
-        echo '║     █████╗ ████████╗███████╗███╗   ██╗ █████║     ∞ - APOTHEOSIS v${{ env.ATENA_VERSION }}            ║'
-        echo '║    ██╔══██╗╚══██╔══╝██╔════╝████╗  ██║██╔══██║    "${{ env.ATENA_CODENAME }}"        ║'
+        echo '║     █████╗ ████████╗███████╗███╗   ██╗ █████║     ∞ - APOTHEOSIS v'${ATENA_VERSION}'            ║'
+        echo '║    ██╔══██╗╚══██╔══╝██╔════╝████╗  ██║██╔══██║    "'${ATENA_CODENAME}'"        ║'
         echo '║    ███████║   ██║   █████╗  ██╔██╗ ██║███████║                                      ║'
         echo '║    ██╔══██║   ██║   ██╔══╝  ██║╚██╗██║██╔══██║   ⚡ REDE NEURAL QUÂNTICA            ║'
         echo '║    ██║  ██║   ██║   ███████╗██║ ╚████║██║  ██║   ⚡ APRENDIZADO PROFUNDO             ║'
@@ -349,12 +349,12 @@ jobs:
       run: |
         cd atena_divina_${{ env.RUN_ID }}
         
-        # Gerar relatório divino - CORRIGIDO: removidas aspas simples do heredoc
+        # Gerar relatório divino
         cat > relatorio_divino_${{ env.TIMESTAMP }}.md << EOF
         # 🧬 ATENA Ω - Relatório da Evolução Divina
         
         **Data:** $(date -u)
-        **Versão:** ${{ env.ATENA_VERSION }}
+        **Versão:** ${ATENA_VERSION}
         **Run #:** ${{ github.run_number }}
         **Modo:** ${{ github.event.inputs.modo_evolucao || 'divino' }}
         
@@ -467,7 +467,7 @@ jobs:
         
         echo "| Métrica | Valor |" >> $GITHUB_STEP_SUMMARY
         echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
-        echo "| **Versão ATENA** | ${{ env.ATENA_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Versão ATENA** | ${ATENA_VERSION} |" >> $GITHUB_STEP_SUMMARY
         echo "| **Run #** | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
         echo "| **Modo** | ${{ github.event.inputs.modo_evolucao || 'divino' }} |" >> $GITHUB_STEP_SUMMARY
         echo "| **Duração** | ${{ github.event.inputs.tempo_execucao || '10' }} min |" >> $GITHUB_STEP_SUMMARY
