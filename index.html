@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧬 ATENA Ω - Dashboard da Evolução</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: "🧬";
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 120px;
+            opacity: 0.1;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .status {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .github-corner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            border: 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .workflow-badge {
+            margin: 20px 0;
+        }
+        
+        .workflow-badge img {
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 ATENA Ω</h1>
+            <p>Dashboard da Evolução Divina - Acompanhe sua IA evoluindo no GitHub</p>
+            <div class="workflow-badge">
+                <img src="https://github.com/minhokagomes-debug/Atena/actions/workflows/main.yml/badge.svg" alt="ATENA Status">
+            </div>
+            <div class="status">🟢 ATENA VIVA no GitHub Actions</div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>📊 ÚLTIMA EXECUÇÃO</h3>
+                <p><strong>Status:</strong> ✅ Sucesso</p>
+                <p><strong>Data:</strong> <span id="ultima-data">Carregando...</span></p>
+                <p><strong>Versões:</strong> 5 geradas</p>
+                <a href="https://github.com/minhokagomes-debug/Atena/actions" class="btn" target="_blank">Ver Execuções</a>
+            </div>
+            
+            <div class="card">
+                <h3>📦 ARTEFATOS</h3>
+                <p><strong>Últimos artefatos:</strong></p>
+                <ul>
+                    <li>📁 versoes.zip</li>
+                    <li>📁 relatorio.zip</li>
+                </ul>
+                <a href="https://github.com/minhokagomes-debug/Atena/actions" class="btn" target="_blank">Download</a>
+            </div>
+            
+            <div class="card">
+                <h3>🚀 COMANDOS</h3>
+                <p>Execute a ATENA manualmente:</p>
+                <a href="https://github.com/minhokagomes-debug/Atena/actions/workflows/main.yml" class="btn" target="_blank">
+                    ⚡ Executar Agora
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3>📊 ESTATÍSTICAS</h3>
+                <p><strong>Total de execuções:</strong> <span id="total-runs">117+</span></p>
+                <p><strong>Última versão:</strong> v1.0.0</p>
+                <p><strong>Modo padrão:</strong> Divino</p>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>📜 HISTÓRICO DE VERSÕES</h3>
+                <ul>
+                    <li>🧬 v1.5 - 11/03/2026</li>
+                    <li>🧬 v1.4 - 10/03/2026</li>
+                    <li>🧬 v1.3 - 09/03/2026</li>
+                    <li>🧬 v1.2 - 08/03/2026</li>
+                    <li>🧬 v1.1 - 07/03/2026</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>🔧 CONFIGURAÇÕES</h3>
+                <p><strong>Tempo:</strong> 5, 10, 30 minutos</p>
+                <p><strong>Modos:</strong> Rápido, Profundo, Divino</p>
+                <p><strong>Schedule:</strong> A cada 30 minutos</p>
+            </div>
+            
+            <div class="card">
+                <h3>📚 DOCUMENTAÇÃO</h3>
+                <p>Aprenda como usar:</p>
+                <a href="#" class="btn btn-small">📖 Wiki</a>
+                <a href="#" class="btn btn-small">🐛 Issues</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>🧬 ATENA Ω - A Divina Evolução • <span id="atualizacao"></span></p>
+            <p>
+                <a href="https://github.com/minhokagomes-debug/Atena" style="color: white;">GitHub</a> • 
+                <a href="#" style="color: white;">Documentação</a> • 
+                <a href="#" style="color: white;">API</a>
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Atualizar data
+        document.getElementById('ultima-data').textContent = new Date().toLocaleString('pt-BR');
+        document.getElementById('atualizacao').textContent = new Date().toLocaleString('pt-BR');
+        
+        // Atualizar a cada minuto
+        setInterval(() => {
+            document.getElementById('atualizacao').textContent = new Date().toLocaleString('pt-BR');
+        }, 60000);
+    </script>
+</body>
+</html>
