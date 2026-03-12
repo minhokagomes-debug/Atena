@@ -38,24 +38,34 @@ jobs:
       run: |
         echo "🚀 ATENA iniciando evolução por ${{ github.event.inputs.tempo || 5 }} minutos..."
         
-        # Criar diretórios
-        mkdir -p atena_versoes
+        # Criar diretório para versões
+        mkdir -p versoes
         
-        # Simular evolução
+        # Simular evolução (substitua pelo seu código real)
         for i in {1..5}; do
           echo "🔄 Geração $i"
-          sleep 10
-          
-          # Criar versão simulada
-          echo "# Versão $i" > atena_versoes/versao_$i.py
-          date >> atena_versoes/versao_$i.py
+          sleep 5
+          echo "# Versão $i do código" > versoes/atena_v$i.py
+          echo "data: $(date)" >> versoes/atena_v$i.py
         done
         
-        echo "✅ Evolução concluída"
+        # Criar relatório simples
+        echo "# Relatório da Evolução" > relatorio.md
+        echo "Data: $(date)" >> relatorio.md
+        echo "Versões criadas: 5" >> relatorio.md
+        
+        echo "✅ Evolução concluída!"
         
     - name: Salvar versões
       uses: actions/upload-artifact@v4
       with:
         name: atena-versoes
-        path: atena_versoes/
+        path: versoes/
+        retention-days: 30
+        
+    - name: Salvar relatório
+      uses: actions/upload-artifact@v4
+      with:
+        name: atena-relatorio
+        path: relatorio.md
         retention-days: 30
