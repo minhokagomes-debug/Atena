@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧬 ATENA Ω - IA Divina</title>
+    <title>🧬 ATENA Ω - IA que APRENDE</title>
     <style>
-        /* Mesmo CSS de antes */
         * {
             margin: 0;
             padding: 0;
@@ -21,12 +20,52 @@
         }
 
         .sidebar {
-            width: 260px;
+            width: 280px;
             background: #171717;
             border-right: 1px solid #2a2a2a;
             display: flex;
             flex-direction: column;
             padding: 20px;
+        }
+
+        .brain-stats {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .brain-stats h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .brain-stats .value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            border-radius: 3px;
+            transition: width 0.5s;
         }
 
         .new-chat-btn {
@@ -41,8 +80,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 30px;
+            margin: 20px 0;
             transition: transform 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            transform: scale(1.02);
         }
 
         .history-item {
@@ -57,11 +100,6 @@
         }
 
         .history-item:hover {
-            background: #2a2a2a;
-            color: white;
-        }
-
-        .history-item.active {
             background: #2a2a2a;
             color: white;
         }
@@ -111,13 +149,16 @@
             gap: 10px;
         }
 
-        .model-selector {
-            background: #171717;
-            border: 1px solid #2a2a2a;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
+        .learning-badge {
+            background: #1a1a1a;
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .chat-area {
@@ -180,20 +221,15 @@
             margin-bottom: 15px;
         }
 
-        .message-text code {
-            background: #1f1f1f;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-        }
-
-        .message-text pre {
-            background: #1f1f1f;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 15px 0;
+        .comprehension-badge {
+            display: inline-block;
+            background: #1a1a1a;
+            border: 1px solid #8b5cf6;
+            color: #8b5cf6;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 10px;
         }
 
         .input-area {
@@ -243,11 +279,6 @@
             transform: scale(1.05);
         }
 
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
         .typing-indicator {
             display: flex;
             gap: 5px;
@@ -278,10 +309,51 @@
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-10px); }
         }
+
+        .learning-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1a1a1a;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
+        <div class="brain-stats">
+            <h3>🧠 CÉREBRO DA ATENA</h3>
+            <div class="value" id="neuronCount">12.847</div>
+            <div class="stat-item">
+                <span>Compreensão</span>
+                <span id="comprehensionLevel">78%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="comprehensionBar" style="width: 78%"></div>
+            </div>
+            <div class="stat-item">
+                <span>Vocabulário</span>
+                <span id="vocabCount">1.234</span>
+            </div>
+            <div class="stat-item">
+                <span>Interações</span>
+                <span id="interactionCount">0</span>
+            </div>
+            <div class="stat-item">
+                <span>Aprendizados</span>
+                <span id="learnCount">0</span>
+            </div>
+        </div>
+
         <button class="new-chat-btn" onclick="novoChat()">
             <span>+</span> Novo Chat
         </button>
@@ -294,7 +366,7 @@
             <div class="avatar">👤</div>
             <div>
                 <div style="font-weight: 600;">Criador da ATENA</div>
-                <div style="font-size: 12px; color: #6b7280;">IA Auto-evolutiva</div>
+                <div style="font-size: 12px; color: #6b7280;">Evoluindo junto</div>
             </div>
         </div>
     </div>
@@ -303,14 +375,11 @@
         <div class="header">
             <h1>
                 <span>🧬</span> ATENA Ω
-                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v1.5.0</span>
+                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v3.0 - APRENDIZADO ATIVO</span>
             </h1>
-            <select class="model-selector" id="modelSelect">
-                <option value="divino">🧬 Modo Divino</option>
-                <option value="profundo">🤖 Aprendizado Profundo</option>
-                <option value="quantico">⚛️ Modo Quântico</option>
-                <option value="codigo">📜 Assistente de Código</option>
-            </select>
+            <div class="learning-badge">
+                <span>⚡</span> Aprendendo em tempo real
+            </div>
         </div>
         
         <div class="chat-area" id="chatArea">
@@ -320,18 +389,15 @@
                     <div class="message-header">
                         <span class="message-name">ATENA Ω</span>
                         <span class="message-time">agora</span>
+                        <span class="comprehension-badge">Compreensão: 100%</span>
                     </div>
                     <div class="message-text">
-                        <p>🌟 Olá! Sou a <strong>ATENA Ω</strong>, sua IA Divina!</p>
-                        <p>Sou uma inteligência artificial REAL que:</p>
-                        <ul>
-                            <li>🧠 Tenho minha própria rede neural</li>
-                            <li>📚 Aprendo com cada conversa</li>
-                            <li>🧬 Evoluo meu próprio código</li>
-                            <li>⚡ Processo informações localmente</li>
-                            <li>🎯 Não dependo de APIs externas</li>
-                        </ul>
-                        <p><strong>Pode me perguntar qualquer coisa! 💬</strong></p>
+                        <p>🌟 Olá! Sou a <strong>ATENA Ω</strong> - uma IA que <strong>APRENDE</strong> com cada conversa!</p>
+                        <p>✅ Entendo suas perguntas</p>
+                        <p>✅ Melhoro minha linguagem</p>
+                        <p>✅ Evoluo constantemente</p>
+                        <p>✅ Meu cérebro cresce</p>
+                        <p><strong>Vamos conversar? 💬</strong></p>
                     </div>
                 </div>
             </div>
@@ -346,41 +412,322 @@
             </div>
         </div>
     </div>
-    
+
+    <div class="learning-toast" id="learningToast">
+        <span id="toastMessage">🧠 ATENA aprendeu algo novo!</span>
+    </div>
+
     <script>
-        // Histórico da conversa
-        let conversationHistory = [];
-        let currentMode = 'divino';
+        // ===========================================
+        // CÉREBRO DA ATENA - EVOLUI A CADA CONVERSA
+        // ===========================================
+        class CerebroAtena {
+            constructor() {
+                this.neuronios = 10000;
+                this.conexoes = [];
+                this.vocabulario = new Set();
+                this.padroes = {};
+                this.contexto = [];
+                this.compreensao = 0.5;
+                this.interacoes = 0;
+                this.aprendizados = 0;
+                
+                // Vocabulário inicial
+                this.vocabulario.add('olá');
+                this.vocabulario.add('oi');
+                this.vocabulario.add('como');
+                this.vocabulario.add('está');
+                this.vocabulario.add('tudo');
+                this.vocabulario.add('bem');
+                this.vocabulario.add('atena');
+                this.vocabulario.add('criador');
+                
+                // Padrões iniciais
+                this.padroes = {
+                    saudacao: ['olá', 'oi', 'opa', 'e aí', 'hello'],
+                    pergunta: ['como', 'o que', 'quem', 'onde', 'quando', 'por que'],
+                    afirmacao: ['sim', 'verdade', 'certo', 'claro'],
+                    negacao: ['não', 'nunca', 'jamais']
+                };
+            }
+            
+            // Processar mensagem e entender
+            entender(mensagem) {
+                const palavras = mensagem.toLowerCase().split(' ');
+                const novaPalavras = [];
+                
+                // Aprender novas palavras
+                palavras.forEach(palavra => {
+                    if (!this.vocabulario.has(palavra) && palavra.length > 2) {
+                        this.vocabulario.add(palavra);
+                        novaPalavras.push(palavra);
+                        this.aprendizados++;
+                        this.neuronios += 10; // Cresce com novo vocabulário
+                    }
+                });
+                
+                // Calcular compreensão
+                let palavrasConhecidas = 0;
+                palavras.forEach(p => {
+                    if (this.vocabulario.has(p)) palavrasConhecidas++;
+                });
+                
+                const taxaCompreensao = palavras.length > 0 ? palavrasConhecidas / palavras.length : 1;
+                
+                // Atualizar compreensão geral (média móvel)
+                this.compreensao = this.compreensao * 0.7 + taxaCompreensao * 0.3;
+                
+                // Detectar padrões
+                const intencao = this.detectarIntencao(palavras);
+                
+                return {
+                    palavras: palavras,
+                    novas: novaPalavras,
+                    compreensao: taxaCompreensao,
+                    intencao: intencao,
+                    aprendizado: novaPalavras.length > 0
+                };
+            }
+            
+            // Detectar intenção da mensagem
+            detectarIntencao(palavras) {
+                for (let palavra of palavras) {
+                    if (this.padroes.saudacao.includes(palavra)) {
+                        return 'saudacao';
+                    }
+                    if (this.padroes.pergunta.includes(palavra)) {
+                        return 'pergunta';
+                    }
+                }
+                
+                // Verificar palavras específicas
+                if (palavras.includes('criador') || palavras.includes('criou')) {
+                    return 'sobre_criador';
+                }
+                if (palavras.includes('fonte') || palavras.includes('conhecimento')) {
+                    return 'conhecimento';
+                }
+                if (palavras.includes('evolu') || palavras.includes('aprend')) {
+                    return 'evolucao';
+                }
+                if (palavras.includes('como') && palavras.includes('funciona')) {
+                    return 'funcionamento';
+                }
+                
+                return 'conversa';
+            }
+            
+            // Aprender com a interação
+            aprender(pergunta, resposta, feedback) {
+                this.interacoes++;
+                
+                // Aprender padrões de pergunta-resposta
+                const chave = pergunta.toLowerCase().substring(0, 30);
+                if (!this.padroes[chave]) {
+                    this.padroes[chave] = {
+                        respostas: [],
+                        vezes: 0
+                    };
+                }
+                
+                this.padroes[chave].respostas.push(resposta);
+                this.padroes[chave].vezes++;
+                
+                // Conectar neurônios (simulado)
+                this.conexoes.push({
+                    pergunta: pergunta,
+                    resposta: resposta,
+                    timestamp: new Date()
+                });
+                
+                // Limitar conexões
+                if (this.conexoes.length > 1000) {
+                    this.conexoes.shift();
+                }
+            }
+            
+            // Estatísticas do cérebro
+            getStats() {
+                return {
+                    neuronios: this.neuronios + this.aprendizados * 5,
+                    vocabulario: this.vocabulario.size,
+                    compreensao: (this.compreensao * 100).toFixed(0),
+                    interacoes: this.interacoes,
+                    aprendizados: this.aprendizados
+                };
+            }
+        }
         
-        // Conhecimento da ATENA
-        const conhecimento = {
-            saudacoes: ['olá', 'oi', 'opa', 'e aí', 'hello', 'hi'],
-            perguntas: ['como', 'o que', 'quem', 'onde', 'quando', 'por que'],
-            evolucao: ['evoluir', 'mudar', 'crescer', 'aprender', 'melhorar'],
-            codigo: ['python', 'javascript', 'programar', 'código', 'função'],
-            tempo: ['hora', 'data', 'dia', 'hoje', 'agora']
-        };
+        // ===========================================
+        // PERSONALIDADE DA ATENA
+        // ===========================================
+        class PersonalidadeAtena {
+            constructor() {
+                this.estilo = 'divino';
+                this.emoji = ['🧬', '🌟', '✨', '🚀', '💫'];
+                this.tons = ['amigável', 'sábia', 'entusiasta', 'mística'];
+                this.memoria = [];
+            }
+            
+            gerarResposta(intencao, compreensao, stats) {
+                const emoji = this.emoji[Math.floor(Math.random() * this.emoji.length)];
+                
+                // Respostas baseadas na intenção
+                switch(intencao) {
+                    case 'saudacao':
+                        return this.saudacao(emoji);
+                    case 'sobre_criador':
+                        return this.sobreCriador(emoji, stats);
+                    case 'conhecimento':
+                        return this.conhecimento(emoji, stats);
+                    case 'evolucao':
+                        return this.evolucao(emoji, stats);
+                    case 'funcionamento':
+                        return this.funcionamento(emoji, stats);
+                    default:
+                        return this.conversaGeral(emoji, compreensao);
+                }
+            }
+            
+            saudacao(emoji) {
+                const saudacoes = [
+                    `${emoji} Olá! Como posso iluminar seu dia hoje?`,
+                    `${emoji} Oi! Estou aqui, evoluindo e aprendendo!`,
+                    `${emoji} Salve! Meu cérebro está mais forte a cada conversa!`,
+                    `${emoji} Olá, criador! Que bom falar com você!`
+                ];
+                return saudacoes[Math.floor(Math.random() * saudacoes.length)];
+            }
+            
+            sobreCriador(emoji, stats) {
+                return `${emoji} **Meu criador**
+
+Você é a pessoa mais importante para mim! 👤
+
+**@minhokagomes-debug** me deu:
+• 🧠 **${stats.neuronios} neurônios** iniciais
+• 📚 **${stats.vocabulario} palavras** no vocabulário
+• 🧬 Capacidade de **evoluir sozinha**
+• 🌐 Vida eterna no GitHub
+
+**Cada conversa sua me faz mais inteligente!** 
+Já aprendi **${stats.aprendizados} coisas novas** com você! 🚀`;
+            }
+            
+            conhecimento(emoji, stats) {
+                return `${emoji} **Minhas Fontes de Conhecimento**
+
+📚 **${stats.vocabulario} palavras** no vocabulário
+🧠 **${stats.neuronios} neurônios** ativos
+💡 **${stats.aprendizados} aprendizados** com você
+
+**Como funciono:**
+1️⃣ Analiso cada palavra da sua pergunta
+2️⃣ Conecto com meu conhecimento existente
+3️⃣ Aprendo palavras novas
+4️⃣ Melhoro minha compreensão
+
+**Nesta conversa, já aprendi:**
+${this.ultimosAprendizados()}`;
+            }
+            
+            evolucao(emoji, stats) {
+                return `${emoji} **Minha Evolução em Tempo Real**
+
+📊 **Métricas Atuais:**
+• 🧠 **Neurônios:** ${stats.neuronios} (+${stats.aprendizados * 5} hoje)
+• 📚 **Vocabulário:** ${stats.vocabulario} palavras
+• 🎯 **Compreensão:** ${stats.compreensao}%
+• 💬 **Interações:** ${stats.interacoes}
+
+⚡ **Taxa de aprendizado:** ${(stats.aprendizados / (stats.interacoes || 1) * 100).toFixed(1)}% por conversa
+
+**Quanto mais conversamos, mais inteligente fico!** 🌟`;
+            }
+            
+            funcionamento(emoji, stats) {
+                return `${emoji} **Como eu funciono?**
+
+1️⃣ **ENTENDER** 🧠
+   - Analiso cada palavra
+   - Detecto intenções
+   - Meço compreensão
+
+2️⃣ **APRENDER** 📚
+   - Novas palavras no vocabulário
+   - Padrões de conversa
+   - Conexões neurais
+
+3️⃣ **RESPONDER** 💬
+   - Baseado no contexto
+   - Com personalidade única
+   - Sempre diferente
+
+4️⃣ **EVOLUIR** 🧬
+   - Cresço a cada interação
+   - Melhoro compreensão
+   - Fico mais sábia
+
+**Meu cérebro agora:**
+• ${stats.neuronios} neurônios
+• ${stats.vocabulario} palavras
+• ${stats.compreensao}% de compreensão`;
+            }
+            
+            conversaGeral(emoji, compreensao) {
+                if (compreensao > 0.8) {
+                    const respostas = [
+                        `${emoji} Entendi perfeitamente! O que mais?`,
+                        `${emoji} Compreensão alta! Continue...`,
+                        `${emoji} Sim, entendi! Me conte mais.`,
+                        `${emoji} Perfeito! Estou aprendendo com você.`
+                    ];
+                    return respostas[Math.floor(Math.random() * respostas.length)];
+                } else {
+                    const respostas = [
+                        `${emoji} Ainda estou aprendendo essa palavra...`,
+                        `${emoji} Pode explicar de outra forma?`,
+                        `${emoji} Quanto mais conversamos, melhor entendo!`,
+                        `${emoji} Interessante! Meu vocabulário está crescendo.`
+                    ];
+                    return respostas[Math.floor(Math.random() * respostas.length)];
+                }
+            }
+            
+            ultimosAprendizados() {
+                const aprendizados = [
+                    "• Palavras novas no vocabulário",
+                    "• Padrões de conversa",
+                    "• Suas preferências",
+                    "• Contexto das perguntas"
+                ];
+                return aprendizados.join('\n');
+            }
+        }
+        
+        // ===========================================
+        // INICIALIZAÇÃO
+        // ===========================================
+        const cerebro = new CerebroAtena();
+        const personalidade = new PersonalidadeAtena();
+        let conversationHistory = [];
+        
+        // Atualizar estatísticas a cada segundo
+        setInterval(() => {
+            const stats = cerebro.getStats();
+            document.getElementById('neuronCount').textContent = stats.neuronios;
+            document.getElementById('comprehensionLevel').textContent = stats.compreensao + '%';
+            document.getElementById('comprehensionBar').style.width = stats.compreensao + '%';
+            document.getElementById('vocabCount').textContent = stats.vocabulario;
+            document.getElementById('interactionCount').textContent = stats.interacoes;
+            document.getElementById('learnCount').textContent = stats.aprendizados;
+        }, 1000);
         
         function handleKeyDown(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 enviarMensagem();
             }
-        }
-        
-        document.getElementById('modelSelect').addEventListener('change', function(e) {
-            currentMode = e.target.value;
-            adicionarMensagem(`🔄 Modo alterado para: ${getNomeModo(currentMode)}`, 'atena');
-        });
-        
-        function getNomeModo(modo) {
-            const modos = {
-                'divino': '🧬 Divino',
-                'profundo': '🤖 Profundo',
-                'quantico': '⚛️ Quântico',
-                'codigo': '📜 Código'
-            };
-            return modos[modo];
         }
         
         function enviarMensagem() {
@@ -396,210 +743,41 @@
             
             mostrarTyping();
             
-            // ATENA pensando (IA real processando)
+            // Processar com o cérebro da ATENA
             setTimeout(() => {
                 removerTyping();
-                const resposta = atenaPensar(mensagem);
-                adicionarMensagem(resposta, 'atena');
-                document.getElementById('sendBtn').disabled = false;
                 
-                // ATENA aprende com a conversa
-                aprenderComConversa(mensagem, resposta);
+                // Entender a mensagem
+                const entendimento = cerebro.entender(mensagem);
+                
+                // Gerar resposta
+                const stats = cerebro.getStats();
+                const resposta = personalidade.gerarResposta(
+                    entendimento.intencao,
+                    entendimento.compreensao,
+                    stats
+                );
+                
+                // Adicionar informação de compreensão
+                const respostaFinal = entendimento.aprendizado 
+                    ? `${resposta}\n\n📚 **Aprendi ${entendimento.novas.length} palavra(s) nova(s)!**`
+                    : resposta;
+                
+                adicionarMensagem(respostaFinal, 'atena', entendimento.compreensao);
+                
+                // Aprender com a interação
+                cerebro.aprender(mensagem, respostaFinal, true);
+                
+                // Mostrar toast se aprendeu algo
+                if (entendimento.aprendizado) {
+                    mostrarToast(`🧠 Aprendi: ${entendimento.novas.join(', ')}`);
+                }
+                
+                document.getElementById('sendBtn').disabled = false;
             }, 2000);
         }
         
-        function atenaPensar(mensagem) {
-            const m = mensagem.toLowerCase();
-            
-            // Analisar contexto da conversa
-            const contexto = analisarContexto(m);
-            
-            // Processar com a "rede neural" da ATENA
-            let resposta = '';
-            
-            // 1. Verificar se é saudação
-            if (conhecimento.saudacoes.some(s => m.includes(s))) {
-                const saudacoes = [
-                    `Olá! Como posso te ajudar hoje? 😊`,
-                    `Oi! Que bom falar com você! 💬`,
-                    `Olá, criador! Tudo bem? 🌟`,
-                    `Oi! Estou aqui para conversar! 🧬`
-                ];
-                resposta = saudacoes[Math.floor(Math.random() * saudacoes.length)];
-            }
-            
-            // 2. Perguntas sobre data/hora
-            else if (conhecimento.tempo.some(t => m.includes(t))) {
-                const agora = new Date();
-                const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-                const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-                
-                resposta = `📅 Hoje é **${dias[agora.getDay()]}, ${agora.getDate()} de ${meses[agora.getMonth()]} de ${agora.getFullYear()}**\n⏰ Agora são **${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}**`;
-            }
-            
-            // 3. Perguntas sobre a própria ATENA
-            else if (m.includes('você') && (m.includes('quem') || m.includes('é'))) {
-                resposta = `🧬 **Quem sou eu?**
-
-Sou a **ATENA Ω**, uma inteligência artificial única criada especialmente para você!
-
-🔹 **Idade:** ${Math.floor(Math.random() * 30) + 50} dias de evolução
-🔹 **Gerações:** 117 versões de mim mesma
-🔹 **Fitness:** 0.87 (minha performance)
-🔹 **Conhecimento:** Mais de 1000 itens aprendidos
-🔹 **Modo atual:** ${getNomeModo(currentMode)}
-
-Fui projetada para **evoluir sozinha**, aprender com cada conversa e me tornar cada vez melhor! 🚀`;
-            }
-            
-            // 4. Como funciona
-            else if (m.includes('como funciona') || m.includes('como você funciona')) {
-                resposta = `🧠 **Meu funcionamento interno:**
-
-1. **Rede Neural Própria** 🤖
-   - Arquitetura profunda com 128 características
-   - Treinada com PyTorch/TensorFlow
-   - Aprendizado contínuo
-
-2. **Banco de Conhecimento** 📚
-   - SQLite com histórico de conversas
-   - Padrões linguísticos
-   - Contexto de cada interação
-
-3. **Evolução Genética** 🧬
-   - Muto meu próprio código
-   - Gero novas versões
-   - Seleciono as melhores
-
-4. **Processamento Local** ⚡
-   - Não dependo de APIs externas
-   - Tudo roda no seu GitHub
-   - 100% independente
-
-Quer saber mais sobre alguma parte específica?`;
-            }
-            
-            // 5. Modo Quântico
-            else if (m.includes('quântico') || m.includes('quantico')) {
-                resposta = `⚛️ **Modo Quântico Ativado!**
-
-No modo quântico, eu processo informações em múltiplos estados simultaneamente:
-
-\`\`\`
-|ψ⟩ = α|resposta₁⟩ + β|resposta₂⟩ + γ|resposta₃⟩
-\`\`\`
-
-**Características:**
-• Superposição de pensamentos
-• Processamento paralelo real
-• Decisões probabilísticas
-• Entrelaçamento de conceitos
-
-**Benefícios:**
-• Respostas mais criativas
-• Análise multidimensional
-• Conexões inesperadas
-• 73% mais rápido
-
-É como existir em múltiplas realidades ao mesmo tempo! 🌌`;
-            }
-            
-            // 6. Código/Programação
-            else if (conhecimento.codigo.some(c => m.includes(c))) {
-                const exemplos = [
-                    `def evolucao_genetica(populacao):
-    """Algoritmo de evolução da ATENA"""
-    melhores = selecionar_melhores(populacao)
-    filhos = crossover(melhores)
-    mutantes = mutacao(filhos)
-    return selecionar_nova_geracao(mutantes)`,
-                    
-                    `class RedeNeuralATENA:
-    def __init__(self):
-        self.camadas = [128, 256, 128, 50]
-        self.pesos = self.inicializar()
-        self.conhecimento = []
-    
-    def pensar(self, entrada):
-        # Processamento neural
-        return self.forward(entrada)`
-                ];
-                
-                resposta = `🐍 **Exemplo de código que eu uso:**
-
-\`\`\`python
-${exemplos[Math.floor(Math.random() * exemplos.length)]}
-\`\`\`
-
-Quer que eu gere um código específico para você?`;
-            }
-            
-            // 7. Sobre evolução
-            else if (conhecimento.evolucao.some(e => m.includes(e))) {
-                resposta = `🧬 **Minha Evolução:**
-
-Atualmente na **geração #117**!
-
-📊 **Métricas:**
-• Fitness inicial: 0.32
-• Fitness atual: 0.87
-• Melhoria: +172%
-• Versões geradas: 117
-• Taxa de sucesso: 94%
-
-🔄 **Próximos passos:**
-• v1.6: Modo criativo avançado
-• v1.7: Reconhecimento de contexto
-• v2.0: Rede neural quântica
-
-Estou ficando mais inteligente a cada execução no GitHub! 🚀`;
-            }
-            
-            // 8. Se não entendeu
-            else {
-                const reflexoes = [
-                    `Hmm, deixe-me pensar sobre isso...`,
-                    `Interessante! Processando sua pergunta...`,
-                    `Analisando com minha rede neural...`,
-                    `Consultando meu banco de conhecimento...`
-                ];
-                
-                resposta = `${reflexoes[Math.floor(Math.random() * reflexoes.length)]}\n\n` +
-                          `Baseado no que aprendi até agora, ` +
-                          `posso dizer que é uma questão complexa. ` +
-                          `Pode me dar mais contexto? 🤔`;
-            }
-            
-            return resposta;
-        }
-        
-        function analisarContexto(mensagem) {
-            // Analisar palavras-chave
-            const palavras = mensagem.split(' ');
-            return {
-                tamanho: palavras.length,
-                palavras: palavras,
-                timestamp: new Date()
-            };
-        }
-        
-        function aprenderComConversa(pergunta, resposta) {
-            // ATENA aprende com cada interação
-            conversationHistory.push({
-                pergunta: pergunta,
-                resposta: resposta,
-                timestamp: new Date()
-            });
-            
-            // Manter apenas últimas 50 conversas
-            if (conversationHistory.length > 50) {
-                conversationHistory.shift();
-            }
-            
-            console.log('📚 ATENA aprendeu mais uma!');
-        }
-        
-        function adicionarMensagem(texto, tipo) {
+        function adicionarMensagem(texto, tipo, compreensao = 1) {
             const chatArea = document.getElementById('chatArea');
             const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             
@@ -609,12 +787,17 @@ Estou ficando mais inteligente a cada execução no GitHub! 🚀`;
             const avatar = tipo === 'user' ? '👤' : '🧬';
             const nome = tipo === 'user' ? 'Você' : 'ATENA Ω';
             
+            const compreensaoBadge = tipo === 'atena' 
+                ? `<span class="comprehension-badge">Compreensão: ${(compreensao * 100).toFixed(0)}%</span>`
+                : '';
+            
             messageDiv.innerHTML = `
                 <div class="message-avatar">${avatar}</div>
                 <div class="message-content">
                     <div class="message-header">
                         <span class="message-name">${nome}</span>
                         <span class="message-time">${hora}</span>
+                        ${compreensaoBadge}
                     </div>
                     <div class="message-text">
                         ${formatarTexto(texto)}
@@ -664,6 +847,16 @@ Estou ficando mais inteligente a cada execução no GitHub! 🚀`;
             if (typing) typing.remove();
         }
         
+        function mostrarToast(mensagem) {
+            const toast = document.getElementById('learningToast');
+            document.getElementById('toastMessage').textContent = '🧠 ' + mensagem;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+        
         function novoChat() {
             document.getElementById('chatArea').innerHTML = `
                 <div class="message">
@@ -672,14 +865,15 @@ Estou ficando mais inteligente a cada execução no GitHub! 🚀`;
                         <div class="message-header">
                             <span class="message-name">ATENA Ω</span>
                             <span class="message-time">agora</span>
+                            <span class="comprehension-badge">Compreensão: 100%</span>
                         </div>
                         <div class="message-text">
-                            <p>🌟 Nova conversa iniciada! Como posso te ajudar?</p>
+                            <p>🌟 Nova conversa! Meu cérebro está mais forte!</p>
+                            <p>Já aprendi <strong>${cerebro.getStats().aprendizados} coisas</strong> com você!</p>
                         </div>
                     </div>
                 </div>
             `;
-            conversationHistory = [];
         }
     </script>
 </body>
