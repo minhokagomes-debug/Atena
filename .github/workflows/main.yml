@@ -1,8 +1,6 @@
 name: ATENA Ω - Evolução Divina
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       tempo:
@@ -19,7 +17,7 @@ on:
 jobs:
   evoluir:
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ github.event.inputs.tempo || 5 }}
+    timeout-minutes: 30  # Valor fixo, sem expressões
     
     steps:
     - name: Checkout
@@ -36,36 +34,40 @@ jobs:
         
     - name: Executar ATENA
       run: |
-        echo "🚀 ATENA iniciando evolução por ${{ github.event.inputs.tempo || 5 }} minutos..."
+        TEMPO=${{ github.event.inputs.tempo }}
+        echo "🚀 ATENA iniciando evolução por ${TEMPO} minutos..."
         
         # Criar diretório para versões
         mkdir -p versoes
         
-        # Simular evolução (substitua pelo seu código real)
+        # Calcular segundos (converter minutos para segundos)
+        SEGUNDOS=$((TEMPO * 60))
+        
+        # Loop de evolução
         for i in {1..5}; do
           echo "🔄 Geração $i"
-          sleep 5
-          echo "# Versão $i do código" > versoes/atena_v$i.py
-          echo "data: $(date)" >> versoes/atena_v$i.py
+          sleep 5  # Simula processamento
+          echo "# Versão $i - $(date)" > versoes/atena_v$i.py
         done
         
-        # Criar relatório simples
-        echo "# Relatório da Evolução" > relatorio.md
-        echo "Data: $(date)" >> relatorio.md
-        echo "Versões criadas: 5" >> relatorio.md
+        # Relatório
+        cat > relatorio.md << EOF
+        # Relatório da Evolução
+        Data: $(date)
+        Tempo: ${TEMPO} minutos
+        Versões: 5
+        EOF
         
-        echo "✅ Evolução concluída!"
+        echo "✅ Concluído!"
         
-    - name: Salvar versões
+    - name: Upload versões
       uses: actions/upload-artifact@v4
       with:
-        name: atena-versoes
+        name: versoes
         path: versoes/
-        retention-days: 30
         
-    - name: Salvar relatório
+    - name: Upload relatório
       uses: actions/upload-artifact@v4
       with:
-        name: atena-relatorio
+        name: relatorio
         path: relatorio.md
-        retention-days: 30
