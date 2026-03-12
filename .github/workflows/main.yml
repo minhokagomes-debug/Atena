@@ -349,8 +349,8 @@ jobs:
       run: |
         cd atena_divina_${{ env.RUN_ID }}
         
-        # Gerar relatório divino
-        cat > relatorio_divino_${{ env.TIMESTAMP }}.md << 'EOF'
+        # Gerar relatório divino - CORRIGIDO: removidas aspas simples do heredoc
+        cat > relatorio_divino_${{ env.TIMESTAMP }}.md << EOF
         # 🧬 ATENA Ω - Relatório da Evolução Divina
         
         **Data:** $(date -u)
