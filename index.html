@@ -44,16 +44,23 @@
             position: relative;
         }
 
-        /* Background Animado com Partículas */
-        #particles-js {
+        /* Background Animado com CSS puro (sem particles.js) */
+        #background-effect {
             position: fixed;
             width: 100%;
             height: 100%;
             z-index: -1;
             pointer-events: none;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 157, 0.05) 0%, transparent 50%);
+            animation: backgroundPulse 10s infinite;
         }
 
-        /* Sidebar Ultra-avançada */
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Sidebar */
         .sidebar {
             width: 420px;
             background: var(--bg-secondary);
@@ -83,7 +90,6 @@
             border-radius: 4px;
         }
 
-        /* Header da Sidebar com Status Quântico */
         .sidebar-header {
             display: flex;
             align-items: center;
@@ -116,7 +122,7 @@
             50% { transform: scale(1.5); opacity: 0.7; box-shadow: 0 0 20px var(--accent-quantum); }
         }
 
-        /* Painel de Fontes Interativo */
+        /* Painel de Fontes */
         .sources-panel {
             background: rgba(0, 255, 157, 0.03);
             border: 1px solid rgba(0, 255, 157, 0.1);
@@ -211,7 +217,7 @@
             transition: width 0.5s ease;
         }
 
-        /* Feed de Evolução em Tempo Real */
+        /* Feed de Evolução */
         .live-learning {
             background: rgba(0, 163, 255, 0.03);
             border: 1px solid rgba(0, 163, 255, 0.1);
@@ -273,7 +279,7 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        /* Gráfico de Fitness em Tempo Real */
+        /* Gráfico de Fitness */
         .fitness-chart {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border-color);
@@ -324,12 +330,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .progress-radial {
-            width: 60px;
-            height: 60px;
-            position: relative;
-        }
-
         .topic-cloud {
             display: flex;
             flex-wrap: wrap;
@@ -364,7 +364,7 @@
             position: relative;
         }
 
-        /* Header com Estatísticas */
+        /* Header */
         .header {
             padding: 20px 40px;
             background: rgba(17, 18, 22, 0.8);
@@ -574,6 +574,7 @@
             line-height: 1.7;
             color: var(--text-secondary);
             font-size: 15px;
+            white-space: pre-wrap;
         }
 
         .code-block {
@@ -700,6 +701,7 @@
             display: flex;
             gap: 24px;
             padding: 12px 8px 0;
+            flex-wrap: wrap;
         }
 
         .tool-hint {
@@ -798,12 +800,11 @@
     </style>
     <!-- Bibliotecas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Partículas de Fundo -->
-    <div id="particles-js"></div>
+    <!-- Background Animado com CSS puro -->
+    <div id="background-effect"></div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
@@ -814,7 +815,7 @@
             <h3 style="color: var(--text-primary); font-size: 14px;">🧬 NEXUS QUÂNTICO</h3>
             <div class="quantum-status">
                 <div class="quantum-pulse"></div>
-                <span>ESTADO: SUPERPOSIÇÃO</span>
+                <span id="quantumState">ESTADO: SUPERPOSIÇÃO</span>
             </div>
         </div>
 
@@ -824,9 +825,7 @@
                 <h4 style="color: var(--text-secondary);">🌐 FONTES ATIVAS</h4>
                 <span style="color: var(--accent-primary); font-size: 12px;">4/4 ONLINE</span>
             </div>
-            <div class="source-grid" id="sourceGrid">
-                <!-- Injetado via JS -->
-            </div>
+            <div class="source-grid" id="sourceGrid"></div>
         </div>
 
         <!-- Feed de Evolução -->
@@ -855,9 +854,8 @@
             
             <div class="metric-row">
                 <span class="metric-label">🧠 Fitness Médio</span>
-                <span class="metric-value" id="avgFitness">0.9421</span>
+                <span class="metric-value" id="avgFitness">0.887</span>
             </div>
-            <div class="progress-radial" data-value="0.94"></div>
             
             <div class="metric-row">
                 <span class="metric-label">💾 Base de Conhecimento</span>
@@ -869,9 +867,7 @@
                 <span class="metric-value" id="successRate">78%</span>
             </div>
 
-            <div class="topic-cloud" id="topicCloud">
-                <!-- Injetado via JS -->
-            </div>
+            <div class="topic-cloud" id="topicCloud"></div>
         </div>
     </aside>
 
@@ -885,53 +881,32 @@
                 <div class="stats-row">
                     <div class="stat-item">
                         <span class="stat-label">Geração</span>
-                        <span class="stat-number">147</span>
-                        <span class="stat-trend">+12.4%</span>
+                        <span class="stat-number" id="generation">147</span>
+                        <span class="stat-trend" id="generationTrend">+12.4%</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">População</span>
-                        <span class="stat-number">1.2k</span>
+                        <span class="stat-number" id="population">1.2k</span>
                         <span class="stat-trend">ótimo</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Diversidade</span>
-                        <span class="stat-number">0.87</span>
-                        <span class="stat-trend">+5%</span>
+                        <span class="stat-number" id="diversity">0.87</span>
+                        <span class="stat-trend" id="diversityTrend">+5%</span>
                     </div>
                 </div>
             </div>
             <div class="header-right">
                 <div class="system-status">
                     <div class="pulse-dot"></div>
-                    <span class="latency">42ms</span>
+                    <span class="latency" id="latency">42ms</span>
                 </div>
             </div>
         </header>
 
         <!-- Container de Mensagens -->
         <div class="messages-container" id="chatContainer">
-            <!-- Mensagem Inicial -->
-            <div class="message">
-                <div class="avatar atena-avatar">Ω</div>
-                <div class="message-body">
-                    <div class="message-header">
-                        <span class="sender-name">ATENA Ω</span>
-                        <span class="message-badge">NÚCLEO QUÂNTICO</span>
-                        <span class="timestamp">agora</span>
-                    </div>
-                    <div class="message-content">
-                        Sistema de evolução autônoma inicializado. Rede neural de atenção em estado de superposição quântica. 
-                        14 novas oportunidades de otimização identificadas no código-fonte. Pronto para iniciar ciclo de mutação v147.
-                    </div>
-                    <div class="code-block">
-                        <span class="code-language">python</span>
-                        <pre style="margin: 0;"># Otimização quântica sugerida
-def quantum_evolution(population):
-    """Aplica operadores genéticos quânticos"""
-    return np.array([ind.rotate(θ) for ind in population])</pre>
-                    </div>
-                </div>
-            </div>
+            <!-- Mensagem Inicial será carregada via JS -->
         </div>
 
         <!-- Área de Input -->
@@ -963,11 +938,11 @@ def quantum_evolution(population):
         // CONFIGURAÇÕES E ESTADO GLOBAL
         // =========================
         const CONFIG = {
-            UPDATE_INTERVAL: 2000,
-            FEED_MAX_ITEMS: 20,
-            FITNESS_HISTORY_SIZE: 50,
-            MUTATION_RATE: 0.3,
-            QUANTUM_STATES: ['SUPERPOSIÇÃO', 'ENTRELAÇAMENTO', 'DECOÉRENCIA', 'COLAPSO'],
+            UPDATE_INTERVAL: 3000,
+            FEED_MAX_ITEMS: 15,
+            FITNESS_HISTORY_SIZE: 30,
+            MUTATION_RATE: 0.4,
+            QUANTUM_STATES: ['SUPERPOSIÇÃO', 'ENTRELAÇAMENTO', 'DECOÉRENCIA', 'COLAPSO', 'TUNELAMENTO'],
             TEMPLATES: [
                 'loop_vectorization', 'parallel_processing', 'memory_optimization',
                 'quantum_circuit', 'neural_architecture', 'genetic_crossover',
@@ -983,13 +958,13 @@ def quantum_evolution(population):
             avgFitness: 0.887,
             bestFitness: 0.998,
             diversity: 0.87,
-            knowledge: 1.4, // TB
+            knowledge: 1.4,
             successRate: 78,
             mutations: 12450,
             successfulMutations: 9711,
             quantumState: 'SUPERPOSIÇÃO',
+            latency: 42,
             fitnessHistory: [],
-            feedItems: [],
             sources: [
                 { name: 'Wikipedia', icon: '📚', status: 'sincronizado', progress: 100 },
                 { name: 'GitHub', icon: '🐙', status: 'analisando', progress: 67 },
@@ -1004,70 +979,88 @@ def quantum_evolution(population):
         };
 
         // =========================
-        // INICIALIZAÇÃO DOS COMPONENTES
+        // INICIALIZAÇÃO
         // =========================
         document.addEventListener('DOMContentLoaded', () => {
-            initParticles();
-            initCharts();
+            initComponents();
+            startSystemUpdates();
+            setupEventListeners();
+            addInitialMessage();
+        });
+
+        function initComponents() {
             initSources();
             initTopics();
             initFeed();
-            startSystemUpdates();
-            setupEventListeners();
-        });
+            initCharts();
+            updateUI();
+        }
 
-        // Partículas de Fundo
-        function initParticles() {
-            particlesJS('particles-js', {
-                particles: {
-                    number: { value: 80, density: { enable: true, value_area: 800 } },
-                    color: { value: ['#00ff9d', '#00a3ff', '#9945ff'] },
-                    shape: { type: 'circle' },
-                    opacity: { value: 0.2, random: true },
-                    size: { value: 2, random: true },
-                    line_linked: {
-                        enable: true,
-                        distance: 150,
-                        color: '#00ff9d',
-                        opacity: 0.1,
-                        width: 1
-                    },
-                    move: {
-                        enable: true,
-                        speed: 1,
-                        direction: 'none',
-                        random: true,
-                        straight: false,
-                        out_mode: 'out',
-                        bounce: false
-                    }
-                },
-                interactivity: {
-                    detect_on: 'canvas',
-                    events: {
-                        onhover: { enable: true, mode: 'repulse' },
-                        onclick: { enable: true, mode: 'push' },
-                        resize: true
-                    }
-                },
-                retina_detect: true
-            });
+        // Inicializar Fontes
+        function initSources() {
+            const grid = document.getElementById('sourceGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = systemState.sources.map(source => `
+                <div class="source-card online" onclick="window.showToast('info', 'Fonte Ativada', 'Conectando à ${source.name}...')">
+                    <div class="source-icon">${source.icon}</div>
+                    <div class="source-name">${source.name}</div>
+                    <div class="source-stats">
+                        <span>${source.status}</span>
+                        <span>${source.progress}%</span>
+                    </div>
+                    <div class="source-progress">
+                        <div class="source-progress-bar" style="width: ${source.progress}%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Inicializar Tópicos
+        function initTopics() {
+            const cloud = document.getElementById('topicCloud');
+            if (!cloud) return;
+            
+            cloud.innerHTML = systemState.topics.map(topic => `
+                <span class="topic-tag" onclick="window.filterByTopic('${topic}')">${topic}</span>
+            `).join('');
+        }
+
+        // Inicializar Feed
+        function initFeed() {
+            const feed = document.getElementById('liveFeed');
+            if (!feed) return;
+            
+            feed.innerHTML = '';
+            const initialMessages = [
+                '⚡ Iniciando núcleo quântico ATENA Ω v3.0...',
+                '🌀 Estado de superposição estabelecido',
+                '🔗 Entrelaçamento quântico com banco vetorial',
+                '🧬 Carregando pesos da rede neural de atenção',
+                '📊 Fitness da geração 147: 0.9421'
+            ];
+            
+            initialMessages.reverse().forEach(msg => addFeedItem(msg));
         }
 
         // Gráfico de Fitness
         let fitnessChart;
         function initCharts() {
-            const ctx = document.getElementById('fitnessGraph').getContext('2d');
+            const canvas = document.getElementById('fitnessGraph');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
             
             // Gerar dados iniciais
-            for (let i = 0; i < 30; i++) {
+            systemState.fitnessHistory = [];
+            for (let i = 0; i < 20; i++) {
                 systemState.fitnessHistory.push(0.85 + Math.random() * 0.15);
             }
 
             fitnessChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: Array.from({ length: 30 }, (_, i) => `G${i}`),
+                    labels: Array.from({ length: 20 }, (_, i) => `G${i}`),
                     datasets: [{
                         label: 'Fitness',
                         data: systemState.fitnessHistory,
@@ -1101,49 +1094,57 @@ def quantum_evolution(population):
             });
         }
 
-        // Inicializar Fontes
-        function initSources() {
-            const grid = document.getElementById('sourceGrid');
-            grid.innerHTML = systemState.sources.map(source => `
-                <div class="source-card online" onclick="showToast('info', 'Fonte Ativada', 'Conectando à ${source.name}...')">
-                    <div class="source-icon">${source.icon}</div>
-                    <div class="source-name">${source.name}</div>
-                    <div class="source-stats">
-                        <span>${source.status}</span>
-                        <span>${source.progress}%</span>
+        // Mensagem inicial
+        function addInitialMessage() {
+            const container = document.getElementById('chatContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="avatar atena-avatar">Ω</div>
+                <div class="message-body">
+                    <div class="message-header">
+                        <span class="sender-name">ATENA Ω</span>
+                        <span class="message-badge">NÚCLEO QUÂNTICO</span>
+                        <span class="timestamp">agora</span>
                     </div>
-                    <div class="source-progress">
-                        <div class="source-progress-bar" style="width: ${source.progress}%"></div>
+                    <div class="message-content">
+                        Sistema de evolução autônoma inicializado. Rede neural de atenção em estado de superposição quântica. 
+                        14 novas oportunidades de otimização identificadas no código-fonte. Pronto para iniciar ciclo de mutação v147.
+                    </div>
+                    <div class="code-block">
+                        <span class="code-language">python</span>
+                        <pre style="margin: 0;"># Otimização quântica sugerida
+def quantum_evolution(population):
+    """Aplica operadores genéticos quânticos"""
+    return np.array([ind.rotate(θ) for ind in population])</pre>
                     </div>
                 </div>
-            `).join('');
+            `;
+            container.appendChild(messageDiv);
         }
 
-        // Inicializar Tópicos
-        function initTopics() {
-            const cloud = document.getElementById('topicCloud');
-            cloud.innerHTML = systemState.topics.map(topic => `
-                <span class="topic-tag" onclick="filterByTopic('${topic}')">${topic}</span>
-            `).join('');
-        }
-
-        // Inicializar Feed
-        function initFeed() {
-            const feed = document.getElementById('liveFeed');
-            const initialMessages = [
-                '⚡ Iniciando núcleo quântico ATENA Ω v3.0...',
-                '🌀 Estado de superposição estabelecido',
-                '🔗 Entrelaçamento quântico com banco vetorial',
-                '🧬 Carregando pesos da rede neural de atenção',
-                '📊 Fitness da geração 147: 0.9421'
-            ];
-            
-            initialMessages.forEach(msg => addFeedItem(msg));
+        // Atualizar UI
+        function updateUI() {
+            document.getElementById('currentFitness').textContent = systemState.fitness.toFixed(4);
+            document.getElementById('avgFitness').textContent = systemState.avgFitness.toFixed(3);
+            document.getElementById('knowledgeSize').textContent = systemState.knowledge.toFixed(1) + ' TB';
+            document.getElementById('successRate').textContent = systemState.successRate + '%';
+            document.getElementById('generation').textContent = systemState.generation;
+            document.getElementById('population').textContent = (systemState.population / 1000).toFixed(1) + 'k';
+            document.getElementById('diversity').textContent = systemState.diversity.toFixed(2);
+            document.getElementById('latency').textContent = systemState.latency + 'ms';
+            document.getElementById('quantumState').textContent = `ESTADO: ${systemState.quantumState}`;
         }
 
         // Adicionar Item ao Feed
         function addFeedItem(message, type = 'info') {
             const feed = document.getElementById('liveFeed');
+            if (!feed) return;
+            
             const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             
             const item = document.createElement('div');
@@ -1155,54 +1156,53 @@ def quantum_evolution(population):
             
             feed.insertBefore(item, feed.firstChild);
             
-            // Remover itens antigos
             while (feed.children.length > CONFIG.FEED_MAX_ITEMS) {
                 feed.removeChild(feed.lastChild);
             }
             
-            // Destacar o mais recente
             Array.from(feed.children).forEach(child => child.classList.remove('active'));
-            feed.firstChild.classList.add('active');
+            if (feed.firstChild) feed.firstChild.classList.add('active');
             
-            // Atualizar contador
             document.getElementById('feedCounter').textContent = `${feed.children.length} eventos`;
         }
 
         // Sistema de Atualização em Tempo Real
         function startSystemUpdates() {
-            // Atualizar fitness a cada 2 segundos
             setInterval(() => {
-                // Simular evolução
+                // Evoluir sistema
+                systemState.generation++;
                 systemState.fitness = 0.94 + (Math.random() * 0.06 - 0.03);
                 systemState.avgFitness = 0.88 + (Math.random() * 0.04 - 0.02);
                 systemState.diversity = 0.85 + (Math.random() * 0.1 - 0.05);
-                systemState.generation++;
+                systemState.latency = 35 + Math.floor(Math.random() * 20);
                 
                 // Atualizar UI
-                document.getElementById('currentFitness').textContent = systemState.fitness.toFixed(4);
-                document.getElementById('avgFitness').textContent = systemState.avgFitness.toFixed(4);
+                updateUI();
                 
                 // Atualizar gráfico
-                systemState.fitnessHistory.push(systemState.fitness);
-                if (systemState.fitnessHistory.length > CONFIG.FITNESS_HISTORY_SIZE) {
-                    systemState.fitnessHistory.shift();
+                if (fitnessChart) {
+                    systemState.fitnessHistory.push(systemState.fitness);
+                    if (systemState.fitnessHistory.length > CONFIG.FITNESS_HISTORY_SIZE) {
+                        systemState.fitnessHistory.shift();
+                    }
+                    fitnessChart.data.datasets[0].data = systemState.fitnessHistory;
+                    fitnessChart.update();
                 }
                 
-                fitnessChart.data.datasets[0].data = systemState.fitnessHistory;
-                fitnessChart.update();
-                
                 // Adicionar ao feed
-                addFeedItem(`📈 Nova geração ${systemState.generation}: fitness ${systemState.fitness.toFixed(4)}`);
+                if (Math.random() > 0.5) {
+                    addFeedItem(`📈 Nova geração ${systemState.generation}: fitness ${systemState.fitness.toFixed(4)}`);
+                }
                 
             }, CONFIG.UPDATE_INTERVAL);
 
-            // Atualizar estado quântico a cada 5 segundos
+            // Atualizar estado quântico
             setInterval(() => {
                 const newState = CONFIG.QUANTUM_STATES[Math.floor(Math.random() * CONFIG.QUANTUM_STATES.length)];
                 systemState.quantumState = newState;
-                document.querySelector('.quantum-status span').textContent = `ESTADO: ${newState}`;
+                document.getElementById('quantumState').textContent = `ESTADO: ${newState}`;
                 addFeedItem(`🌀 Estado quântico alterado: ${newState}`);
-            }, 5000);
+            }, 8000);
 
             // Simular mutações
             setInterval(() => {
@@ -1212,16 +1212,16 @@ def quantum_evolution(population):
                     
                     systemState.mutations++;
                     if (success) systemState.successfulMutations++;
-                    systemState.successRate = Math.round((systemState.successfulMutations / systemState.mutations) * 100);
+                    systemState.successRate = Math.min(99, Math.round((systemState.successfulMutations / systemState.mutations) * 100));
                     
-                    document.getElementById('successRate').textContent = `${systemState.successRate}%`;
+                    document.getElementById('successRate').textContent = systemState.successRate + '%';
                     
                     addFeedItem(
                         success ? `✅ Mutação bem-sucedida: ${template}` : `❌ Mutação falhou: ${template}`,
                         success ? 'success' : 'error'
                     );
                 }
-            }, 4000);
+            }, 5000);
         }
 
         // =========================
@@ -1229,11 +1229,11 @@ def quantum_evolution(population):
         // =========================
 
         // Enviar Mensagem
-        function sendMessage() {
+        window.sendMessage = function() {
             const input = document.getElementById('userInput');
             const container = document.getElementById('chatContainer');
             
-            if (!input.value.trim()) return;
+            if (!input || !input.value.trim()) return;
 
             const userMessage = input.value;
             
@@ -1243,15 +1243,17 @@ def quantum_evolution(population):
             input.value = '';
             autoResizeTextarea(input);
 
-            // Simular processamento da ATENA
+            // Processar
             setTimeout(() => {
                 processUserMessage(userMessage);
             }, 800);
-        }
+        };
 
-        // Adicionar Mensagem ao Chat
+        // Adicionar Mensagem
         function addMessage(type, content, code = null) {
             const container = document.getElementById('chatContainer');
+            if (!container) return;
+            
             const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             
             const messageDiv = document.createElement('div');
@@ -1292,11 +1294,10 @@ def quantum_evolution(population):
             container.scrollTop = container.scrollHeight;
         }
 
-        // Processar Mensagem do Usuário
+        // Processar Mensagem
         function processUserMessage(message) {
             const lowerMsg = message.toLowerCase();
             
-            // Comandos especiais
             if (lowerMsg.includes('evoluir') || lowerMsg.includes('mutação')) {
                 handleEvolutionCommand();
             } else if (lowerMsg.includes('analisar') || lowerMsg.includes('código')) {
@@ -1310,7 +1311,7 @@ def quantum_evolution(population):
             }
         }
 
-        // Handlers de Comandos
+        // Handlers
         function handleEvolutionCommand() {
             const template = CONFIG.TEMPLATES[Math.floor(Math.random() * CONFIG.TEMPLATES.length)];
             const improvement = (Math.random() * 15).toFixed(2);
@@ -1347,7 +1348,7 @@ def quantum_evolution(population):
         function handleMetricsCommand() {
             const response = `📊 Métricas do Sistema:\n\n` +
                 `• Geração atual: ${systemState.generation}\n` +
-                `• População: ${systemState.population.toLocaleString()}\n` +
+                `• População: ${(systemState.population / 1000).toFixed(1)}k\n` +
                 `• Fitness médio: ${systemState.avgFitness.toFixed(4)}\n` +
                 `• Melhor fitness: ${systemState.bestFitness.toFixed(4)}\n` +
                 `• Diversidade: ${systemState.diversity.toFixed(2)}\n` +
@@ -1359,14 +1360,6 @@ def quantum_evolution(population):
         }
 
         function handleQuantumCommand() {
-            const states = [
-                'superposição',
-                'entrelaçamento',
-                'decoerência',
-                'colapso',
-                'tunelamento'
-            ];
-            
             const response = `🌀 Estado quântico atual: ${systemState.quantumState}\n\n` +
                 `O sistema está operando em regime quântico, permitindo:\n` +
                 `• Múltiplos estados de mutação simultâneos\n` +
@@ -1389,10 +1382,12 @@ def quantum_evolution(population):
             addMessage('atena', response);
         }
 
-        // Sistema de Toast Notifications
-        function showToast(type, title, message) {
+        // Toast Notifications
+        window.showToast = function(type, title, message) {
             const container = document.getElementById('toastContainer');
-            const id = 'toast_' + Date.now();
+            if (!container) return;
+            
+            const id = 'toast_' + Date.now() + '_' + Math.random();
             
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -1406,7 +1401,7 @@ def quantum_evolution(population):
             };
             
             toast.innerHTML = `
-                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-icon">${icons[type] || 'ℹ️'}</div>
                 <div class="toast-content">
                     <div class="toast-title">${title}</div>
                     <div class="toast-message">${message}</div>
@@ -1416,18 +1411,17 @@ def quantum_evolution(population):
             
             container.appendChild(toast);
             
-            // Auto-remover após 5 segundos
             setTimeout(() => {
                 const element = document.getElementById(id);
                 if (element) element.remove();
             }, 5000);
-        }
+        };
 
         // Filtrar por tópico
-        function filterByTopic(topic) {
+        window.filterByTopic = function(topic) {
             showToast('info', 'Filtro Aplicado', `Exibindo resultados para: ${topic}`);
             addMessage('atena', `Analisando conhecimento relacionado a: ${topic}`);
-        }
+        };
 
         // Utilidades
         function escapeHtml(text) {
@@ -1444,6 +1438,7 @@ def quantum_evolution(population):
         // Event Listeners
         function setupEventListeners() {
             const textarea = document.getElementById('userInput');
+            if (!textarea) return;
             
             textarea.addEventListener('input', function() {
                 autoResizeTextarea(this);
@@ -1455,7 +1450,6 @@ def quantum_evolution(population):
                     sendMessage();
                 }
                 
-                // Comandos de teclado
                 if (e.ctrlKey) {
                     switch(e.key) {
                         case 'k':
@@ -1474,11 +1468,6 @@ def quantum_evolution(population):
                 }
             });
         }
-
-        // Expor funções globalmente
-        window.sendMessage = sendMessage;
-        window.showToast = showToast;
-        window.filterByTopic = filterByTopic;
     </script>
 </body>
 </html>
