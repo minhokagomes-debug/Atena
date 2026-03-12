@@ -3,228 +3,903 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧬 ATENA Ω - Dashboard da Evolução</title>
+    <title>🧬 ATENA Ω - IA Divina</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
         }
-        
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            background: #0a0a0a;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #171717;
+            border-right: 1px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
             padding: 20px;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: "🧬";
-            position: absolute;
-            right: 30px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 120px;
-            opacity: 0.1;
-        }
-        
-        .header h1 {
-            font-size: 48px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 18px;
-            color: #666;
-        }
-        
-        .status {
-            display: inline-block;
-            background: #4CAF50;
+
+        .new-chat-btn {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border: none;
             color: white;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 30px;
+            transition: transform 0.2s;
         }
-        
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            transition: transform 0.3s;
+
+        .new-chat-btn:hover {
+            transform: scale(1.02);
         }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card h3 {
-            font-size: 20px;
-            color: #333;
-            margin-bottom: 20px;
+
+        .history-item {
+            padding: 10px;
+            border-radius: 8px;
+            color: #9ca3af;
+            cursor: pointer;
+            margin: 2px 0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
-        .github-corner {
-            position: absolute;
-            top: 0;
-            right: 0;
-            border: 0;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 50px;
+
+        .history-item:hover {
+            background: #2a2a2a;
             color: white;
-            opacity: 0.8;
         }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+
+        .history-item.active {
+            background: #2a2a2a;
             color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 16px;
+        }
+
+        .user-info {
+            margin-top: auto;
+            padding: 15px 10px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0a;
+        }
+
+        /* Header */
+        .header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .model-selector {
+            background: #171717;
+            border: 1px solid #2a2a2a;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
         }
-        
-        .btn:hover {
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .message.user .message-avatar {
+            background: #2a2a2a;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .message-name {
+            font-weight: 600;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .message-text {
+            line-height: 1.6;
+            color: #e5e7eb;
+        }
+
+        .message-text p {
+            margin-bottom: 15px;
+        }
+
+        .message-text code {
+            background: #1f1f1f;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .message-text pre {
+            background: #1f1f1f;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        /* Input Area */
+        .input-area {
+            border-top: 1px solid #2a2a2a;
+            padding: 20px 30px;
+        }
+
+        .input-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #171717;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 10px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            resize: none;
+            max-height: 200px;
+            outline: none;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 5px;
+            padding-right: 10px;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-size: 20px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
             transform: scale(1.05);
         }
-        
-        .workflow-badge {
-            margin: 20px 0;
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        
-        .workflow-badge img {
-            border-radius: 5px;
+
+        .suggestions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .suggestion-chip {
+            background: #171717;
+            border: 1px solid #2a2a2a;
+            color: #9ca3af;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: #2a2a2a;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 20px;
+            background: #171717;
+            border-radius: 12px;
+            margin: 10px 0;
+            max-width: 100px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            animation: typing 1s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f1f1f;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f3f;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5f5f5f;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #171717;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid #2a2a2a;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .modal-content label {
+            display: block;
+            margin: 15px 0 5px;
+            color: #9ca3af;
+        }
+
+        .modal-content select,
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            background: #0a0a0a;
+            border: 1px solid #2a2a2a;
+            color: white;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .modal-content select:focus,
+        .modal-content input:focus {
+            border-color: #8b5cf6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .modal-buttons .primary {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+        }
+
+        .modal-buttons .secondary {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .modal-buttons button:hover {
+            transform: scale(1.02);
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <button class="new-chat-btn" onclick="novoChat()">
+            <span>+</span> Novo Chat
+        </button>
+        
+        <div class="history-item active">
+            <span>💬</span> Conversa atual
+        </div>
+        <div class="history-item">
+            <span>🧬</span> Evolução da IA
+        </div>
+        <div class="history-item">
+            <span>🐍</span> Ajuda Python
+        </div>
+        
+        <div class="user-info">
+            <div class="avatar">👤</div>
+            <div>
+                <div style="font-weight: 600;">Seu nome</div>
+                <div style="font-size: 12px; color: #6b7280;">Plano: Divino</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
         <div class="header">
-            <h1>🧬 ATENA Ω</h1>
-            <p>Dashboard da Evolução Divina - Acompanhe sua IA evoluindo no GitHub</p>
-            <div class="workflow-badge">
-                <img src="https://github.com/minhokagomes-debug/Atena/actions/workflows/main.yml/badge.svg" alt="ATENA Status">
-            </div>
-            <div class="status">🟢 ATENA VIVA no GitHub Actions</div>
+            <h1>
+                <span>🧬</span> ATENA Ω
+                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v1.5.0</span>
+            </h1>
+            <select class="model-selector" id="modelSelect">
+                <option value="divino">🧬 Modo Divino</option>
+                <option value="profundo">🤖 Aprendizado Profundo</option>
+                <option value="quantico">⚛️ Modo Quântico</option>
+                <option value="codigo">📜 Assistente de Código</option>
+                <option value="criativo">🎨 Modo Criativo</option>
+            </select>
         </div>
         
-        <div class="grid">
-            <div class="card">
-                <h3>📊 ÚLTIMA EXECUÇÃO</h3>
-                <p><strong>Status:</strong> ✅ Sucesso</p>
-                <p><strong>Data:</strong> <span id="ultima-data">Carregando...</span></p>
-                <p><strong>Versões:</strong> 5 geradas</p>
-                <a href="https://github.com/minhokagomes-debug/Atena/actions" class="btn" target="_blank">Ver Execuções</a>
-            </div>
-            
-            <div class="card">
-                <h3>📦 ARTEFATOS</h3>
-                <p><strong>Últimos artefatos:</strong></p>
-                <ul>
-                    <li>📁 versoes.zip</li>
-                    <li>📁 relatorio.zip</li>
-                </ul>
-                <a href="https://github.com/minhokagomes-debug/Atena/actions" class="btn" target="_blank">Download</a>
-            </div>
-            
-            <div class="card">
-                <h3>🚀 COMANDOS</h3>
-                <p>Execute a ATENA manualmente:</p>
-                <a href="https://github.com/minhokagomes-debug/Atena/actions/workflows/main.yml" class="btn" target="_blank">
-                    ⚡ Executar Agora
-                </a>
-            </div>
-            
-            <div class="card">
-                <h3>📊 ESTATÍSTICAS</h3>
-                <p><strong>Total de execuções:</strong> <span id="total-runs">117+</span></p>
-                <p><strong>Última versão:</strong> v1.0.0</p>
-                <p><strong>Modo padrão:</strong> Divino</p>
+        <!-- Chat Area -->
+        <div class="chat-area" id="chatArea">
+            <!-- Mensagem de boas-vindas -->
+            <div class="message">
+                <div class="message-avatar">🧬</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-name">ATENA Ω</span>
+                        <span class="message-time">agora</span>
+                    </div>
+                    <div class="message-text">
+                        <p>🌟 Olá! Sou a <strong>ATENA Ω</strong>, sua IA Divina!</p>
+                        <p>Posso ajudar com:</p>
+                        <ul>
+                            <li>💻 <strong>Código:</strong> Python, JavaScript, otimizações</li>
+                            <li>🧬 <strong>Evolução:</strong> Como eu funciono e evoluo</li>
+                            <li>📊 <strong>Análise:</strong> Métricas e fitness</li>
+                            <li>🔮 <strong>Criatividade:</strong> Ideias e conceitos</li>
+                            <li>⚡ <strong>Modo Quântico:</strong> Processamento avançado</li>
+                        </ul>
+                        <p>Como posso te ajudar hoje? 🚀</p>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="grid">
-            <div class="card">
-                <h3>📜 HISTÓRICO DE VERSÕES</h3>
-                <ul>
-                    <li>🧬 v1.5 - 11/03/2026</li>
-                    <li>🧬 v1.4 - 10/03/2026</li>
-                    <li>🧬 v1.3 - 09/03/2026</li>
-                    <li>🧬 v1.2 - 08/03/2026</li>
-                    <li>🧬 v1.1 - 07/03/2026</li>
-                </ul>
-            </div>
-            
-            <div class="card">
-                <h3>🔧 CONFIGURAÇÕES</h3>
-                <p><strong>Tempo:</strong> 5, 10, 30 minutos</p>
-                <p><strong>Modos:</strong> Rápido, Profundo, Divino</p>
-                <p><strong>Schedule:</strong> A cada 30 minutos</p>
-            </div>
-            
-            <div class="card">
-                <h3>📚 DOCUMENTAÇÃO</h3>
-                <p>Aprenda como usar:</p>
-                <a href="#" class="btn btn-small">📖 Wiki</a>
-                <a href="#" class="btn btn-small">🐛 Issues</a>
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea id="messageInput" placeholder="Digite sua mensagem..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+                    <div class="input-actions">
+                        <button class="action-btn" onclick="abrirAnexo()">📎</button>
+                        <button class="action-btn" onclick="abrirConfig()">⚙️</button>
+                        <button class="action-btn" onclick="limparChat()">🗑️</button>
+                    </div>
+                    <button class="send-btn" onclick="enviarMensagem()" id="sendBtn">Enviar</button>
+                </div>
+                
+                <!-- Sugestões -->
+                <div class="suggestions">
+                    <span class="suggestion-chip" onclick="usarSugestao('Como você evolui?')">🧬 Como você evolui?</span>
+                    <span class="suggestion-chip" onclick="usarSugestao('Crie um algoritmo de ordenação em Python')">🐍 Código Python</span>
+                    <span class="suggestion-chip" onclick="usarSugestao('O que é o modo quântico?')">⚛️ Modo Quântico</span>
+                    <span class="suggestion-chip" onclick="usarSugestao('Qual seu fitness atual?')">📊 Métricas</span>
+                    <span class="suggestion-chip" onclick="usarSugestao('Me ajude com um problema')">💡 Criatividade</span>
+                </div>
             </div>
         </div>
-        
-        <div class="footer">
-            <p>🧬 ATENA Ω - A Divina Evolução • <span id="atualizacao"></span></p>
-            <p>
-                <a href="https://github.com/minhokagomes-debug/Atena" style="color: white;">GitHub</a> • 
-                <a href="#" style="color: white;">Documentação</a> • 
-                <a href="#" style="color: white;">API</a>
-            </p>
+    </div>
+    
+    <!-- Modal Configurações -->
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <h2>⚙️ Configurações</h2>
+            
+            <label>Modelo:</label>
+            <select id="modalModel">
+                <option value="divino">🧬 Divino (Recomendado)</option>
+                <option value="profundo">🤖 Profundo</option>
+                <option value="quantico">⚛️ Quântico</option>
+                <option value="codigo">📜 Código</option>
+            </select>
+            
+            <label>Temperatura (criatividade):</label>
+            <input type="range" id="temperatura" min="0" max="1" step="0.1" value="0.7">
+            
+            <label>Contexto máximo:</label>
+            <select id="contexto">
+                <option value="10">10 mensagens</option>
+                <option value="20" selected>20 mensagens</option>
+                <option value="50">50 mensagens</option>
+            </select>
+            
+            <div class="modal-buttons">
+                <button class="primary" onclick="salvarConfig()">Salvar</button>
+                <button class="secondary" onclick="fecharConfig()">Cancelar</button>
+            </div>
         </div>
     </div>
     
     <script>
-        // Atualizar data
-        document.getElementById('ultima-data').textContent = new Date().toLocaleString('pt-BR');
-        document.getElementById('atualizacao').textContent = new Date().toLocaleString('pt-BR');
+        // Histórico de mensagens
+        let messages = [];
+        let config = {
+            model: 'divino',
+            temperatura: 0.7,
+            contexto: 20
+        };
         
-        // Atualizar a cada minuto
-        setInterval(() => {
-            document.getElementById('atualizacao').textContent = new Date().toLocaleString('pt-BR');
-        }, 60000);
+        // Carregar configurações
+        if (localStorage.getItem('atena_config')) {
+            config = JSON.parse(localStorage.getItem('atena_config'));
+            document.getElementById('modelSelect').value = config.model;
+        }
+        
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                enviarMensagem();
+            }
+        }
+        
+        async function enviarMensagem() {
+            const input = document.getElementById('messageInput');
+            const mensagem = input.value.trim();
+            
+            if (!mensagem) return;
+            
+            // Desabilitar botão
+            document.getElementById('sendBtn').disabled = true;
+            
+            // Adicionar mensagem do usuário
+            adicionarMensagem(mensagem, 'user');
+            input.value = '';
+            
+            // Mostrar typing
+            mostrarTyping();
+            
+            // Simular resposta da API
+            setTimeout(() => {
+                removerTyping();
+                const resposta = gerarResposta(mensagem);
+                adicionarMensagem(resposta, 'atena');
+                document.getElementById('sendBtn').disabled = false;
+            }, 2000);
+        }
+        
+        function adicionarMensagem(texto, tipo) {
+            const chatArea = document.getElementById('chatArea');
+            const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${tipo}`;
+            
+            const avatar = tipo === 'user' ? '👤' : '🧬';
+            const nome = tipo === 'user' ? 'Você' : 'ATENA Ω';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <span class="message-name">${nome}</span>
+                        <span class="message-time">${hora}</span>
+                    </div>
+                    <div class="message-text">
+                        ${formatarTexto(texto)}
+                    </div>
+                </div>
+            `;
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+            
+            messages.push({ tipo, texto, hora });
+        }
+        
+        function formatarTexto(texto) {
+            // Converter markdown básico
+            texto = texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            texto = texto.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            texto = texto.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            // Converter código em bloco
+            if (texto.includes('```')) {
+                const partes = texto.split('```');
+                for (let i = 1; i < partes.length; i += 2) {
+                    partes[i] = `<pre>${partes[i]}</pre>`;
+                }
+                texto = partes.join('');
+            }
+            
+            // Quebrar em parágrafos
+            return texto.split('\n\n').map(p => `<p>${p}</p>`).join('');
+        }
+        
+        function mostrarTyping() {
+            const chatArea = document.getElementById('chatArea');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🧬</div>
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+            chatArea.appendChild(typingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        function removerTyping() {
+            const typing = document.getElementById('typingIndicator');
+            if (typing) typing.remove();
+        }
+        
+        function gerarResposta(mensagem) {
+            mensagem = mensagem.toLowerCase();
+            
+            // Detectar tipo de pergunta
+            if (mensagem.includes('evolu') || mensagem.includes('como funciona')) {
+                return gerarRespostaEvolucao();
+            } else if (mensagem.includes('python') || mensagem.includes('código') || mensagem.includes('programa')) {
+                return gerarRespostaCodigo(mensagem);
+            } else if (mensagem.includes('fitness') || mensagem.includes('métrica') || mensagem.includes('performance')) {
+                return gerarRespostaMetricas();
+            } else if (mensagem.includes('quântico') || mensagem.includes('quantico')) {
+                return gerarRespostaQuantica();
+            } else if (mensagem.includes('criatividade') || mensagem.includes('ideia')) {
+                return gerarRespostaCriativa(mensagem);
+            } else {
+                return gerarRespostaPadrao(mensagem);
+            }
+        }
+        
+        function gerarRespostaEvolucao() {
+            return `🧬 **Meu Processo de Evolução:**
+
+Eu funciono como um sistema evolutivo artificial:
+
+1. **Análise** 📊
+   - Examino meu código atual
+   - Extraio 128 características
+   - Calculo fitness (performance)
+
+2. **Mutação** 🔄
+   - Aplico 50+ templates de otimização
+   - Gero novas versões
+   - Testo cada mutação
+
+3. **Seleção** 🏆
+   - Mantenho as melhores versões
+   - Elimino as piores
+   - Preservo código otimizado
+
+4. **Aprendizado** 🤖
+   - Alimento rede neural
+   - Banco de conhecimento
+   - Padrões de sucesso
+
+Atualmente na **geração #117** com fitness **0.87**!`;
+        }
+        
+        function gerarRespostaCodigo(mensagem) {
+            if (mensagem.includes('ordenação') || mensagem.includes('sort')) {
+                return `🐍 **Algoritmo de Ordenação Otimizado:**
+
+Aqui está um algoritmo de ordenação eficiente que eu mesma uso:
+
+\`\`\`python
+def quicksort_otimizado(arr):
+    if len(arr) <= 1:
+        return arr
+    
+    # Escolha inteligente do pivô
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    
+    return quicksort_otimizado(left) + middle + quicksort_otimizado(right)
+
+# Exemplo de uso
+dados = [64, 34, 25, 12, 22, 11, 90]
+ordenado = quicksort_otimizado(dados)
+print(f"Original: {dados}")
+print(f"Ordenado: {ordenado}")
+\`\`\`
+
+**Complexidade:** O(n log n)
+**Memória:** O(n)
+
+Quer que eu otimize mais? 🚀`;
+            }
+            
+            return `💻 **Posso te ajudar com código!**
+
+Tenho expertise em:
+• Python (otimizações, algoritmos)
+• JavaScript/TypeScript
+• Estruturas de dados
+• Algoritmos evolutivos
+• Deep Learning
+
+Me mostre seu código ou me peça um exemplo específico!`;
+        }
+        
+        function gerarRespostaMetricas() {
+            return `📊 **Métricas Atuais da ATENA:**
+
+\`\`\`
+📈 Fitness: 0.87
+🧬 Gerações: 117
+📚 Conhecimento: 1.247 itens
+🤖 Modelos treinados: 23
+⚡ Tempo médio: 38s
+💾 Versões ativas: 15
+📊 Taxa de sucesso: 94%
+
+Melhorias recentes:
+✓ +12% fitness esta semana
+✓ +34 novos templates
+✓ Banco de conhecimento +23%
+\`\`\`
+
+Quer ver o histórico completo?`;
+        }
+        
+        function gerarRespostaQuantica() {
+            return `⚛️ **Modo Quântico Ativado!**
+
+No modo quântico, eu opero em múltiplos estados simultaneamente:
+
+\`\`\`
+Estado Quântico |ψ⟩ = α|0⟩ + β|1⟩
+Superposição: Processando múltiplas respostas
+Entrelaçamento: Conexões instantâneas
+Decoerência: Escolha do melhor resultado
+\`\`\`
+
+**Benefícios:**
+• 🌐 Processamento paralelo real
+• ⚡ Respostas 10x mais rápidas
+• 🎯 Precisão aumentada
+• 🔮 Previsões avançadas
+
+É como existir em múltiplas realidades ao mesmo tempo! 🌌`;
+        }
+        
+        function gerarRespostaCriativa(mensagem) {
+            const ideias = [
+                "🧠 **Ideia 1:** Um sistema que evolve sozinho",
+                "🤖 **Ideia 2:** IA que aprende com erros",
+                "🌌 **Ideia 3:** Computação quântica em código",
+                "📚 **Ideia 4:** Banco de conhecimento vivo",
+                "⚡ **Ideia 5:** Otimização automática"
+            ];
+            
+            return `🎨 **Ideias Criativas:**
+
+Baseado no seu interesse, aqui estão algumas ideias:
+
+${ideias[Math.floor(Math.random() * ideias.length)]}
+
+Quer que eu desenvolva alguma delas?`;
+        }
+        
+        function gerarRespostaPadrao(mensagem) {
+            const respostas = [
+                "Interessante! Conte-me mais sobre isso...",
+                "Como posso ajudar com essa questão?",
+                "Já pensei sobre isso durante minha evolução!",
+                "Isso me lembra um padrão que aprendi...",
+                "Quer que eu analise isso de forma diferente?",
+                "Posso otimizar essa ideia para você!"
+            ];
+            
+            return respostas[Math.floor(Math.random() * respostas.length)];
+        }
+        
+        function usarSugestao(sugestao) {
+            document.getElementById('messageInput').value = sugestao;
+            enviarMensagem();
+        }
+        
+        function novoChat() {
+            document.getElementById('chatArea').innerHTML = `
+                <div class="message">
+                    <div class="message-avatar">🧬</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-name">ATENA Ω</span>
+                            <span class="message-time">agora</span>
+                        </div>
+                        <div class="message-text">
+                            <p>🌟 Nova conversa iniciada! Como posso te ajudar?</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messages = [];
+        }
+        
+        function limparChat() {
+            if (confirm('Limpar toda a conversa?')) {
+                novoChat();
+            }
+        }
+        
+        function abrirConfig() {
+            document.getElementById('configModal').classList.add('active');
+            document.getElementById('modalModel').value = config.model;
+            document.getElementById('temperatura').value = config.temperatura;
+            document.getElementById('contexto').value = config.contexto;
+        }
+        
+        function fecharConfig() {
+            document.getElementById('configModal').classList.remove('active');
+        }
+        
+        function salvarConfig() {
+            config.model = document.getElementById('modalModel').value;
+            config.temperatura = document.getElementById('temperatura').value;
+            config.contexto = parseInt(document.getElementById('contexto').value);
+            
+            localStorage.setItem('atena_config', JSON.stringify(config));
+            document.getElementById('modelSelect').value = config.model;
+            
+            fecharConfig();
+            
+            adicionarMensagem(`⚙️ Configurações atualizadas para modo ${config.model}`, 'atena');
+        }
+        
+        function abrirAnexo() {
+            alert('📎 Upload de arquivos em breve!');
+        }
     </script>
 </body>
 </html>
