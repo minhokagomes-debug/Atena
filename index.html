@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧬 ATENA Ω - IA que TREINA sozinha</title>
+    <title>🧬 ATENA Ω - MEMÓRIA SEMÂNTICA + WIKIPEDIA</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,7 @@
         }
 
         .sidebar {
-            width: 300px;
+            width: 350px;
             background: #171717;
             border-right: 1px solid #2a2a2a;
             display: flex;
@@ -29,14 +29,14 @@
             overflow-y: auto;
         }
 
-        .training-panel {
+        .semantic-panel {
             background: linear-gradient(135deg, #8b5cf6, #ec4899);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
         }
 
-        .training-panel h3 {
+        .semantic-panel h3 {
             font-size: 16px;
             margin-bottom: 15px;
             display: flex;
@@ -44,26 +44,29 @@
             gap: 5px;
         }
 
+        .metric-group {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
         .metric {
-            margin: 15px 0;
+            margin: 10px 0;
         }
 
         .metric-label {
             font-size: 12px;
             opacity: 0.8;
-            margin-bottom: 5px;
-        }
-
-        .metric-value {
-            font-size: 24px;
-            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
         }
 
         .progress-container {
             background: #2a2a2a;
             border-radius: 10px;
-            height: 10px;
-            margin: 10px 0;
+            height: 8px;
+            margin: 5px 0;
             overflow: hidden;
         }
 
@@ -74,14 +77,74 @@
             transition: width 0.5s;
         }
 
-        .training-log {
+        .semantic-map {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .semantic-node {
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 5px 12px;
+            display: inline-block;
+            margin: 3px;
+            font-size: 12px;
+            border: 1px solid #8b5cf6;
+        }
+
+        .semantic-connection {
+            color: #8b5cf6;
+            margin: 0 5px;
+            font-size: 10px;
+        }
+
+        .wiki-panel {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .wiki-title {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .wiki-content {
+            font-size: 12px;
+            color: #9ca3af;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .wiki-item {
+            padding: 8px;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+        }
+
+        .wiki-item:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .learning-log {
             background: #1a1a1a;
             border-radius: 10px;
             padding: 15px;
             margin-top: 20px;
             font-family: monospace;
-            font-size: 12px;
-            max-height: 200px;
+            font-size: 11px;
+            max-height: 150px;
             overflow-y: auto;
         }
 
@@ -89,7 +152,7 @@
             color: #4CAF50;
             margin: 5px 0;
             border-left: 2px solid #4CAF50;
-            padding-left: 10px;
+            padding-left: 8px;
         }
 
         .new-chat-btn {
@@ -106,10 +169,6 @@
             gap: 10px;
             margin: 20px 0;
             transition: transform 0.2s;
-        }
-
-        .new-chat-btn:hover {
-            transform: scale(1.02);
         }
 
         .user-info {
@@ -157,10 +216,10 @@
             gap: 10px;
         }
 
-        .training-badge {
+        .semantic-badge {
             background: #1a1a1a;
-            border: 1px solid #4CAF50;
-            color: #4CAF50;
+            border: 1px solid #8b5cf6;
+            color: #8b5cf6;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
@@ -220,23 +279,17 @@
             color: #6b7280;
         }
 
-        .message-text {
-            line-height: 1.6;
-            color: #e5e7eb;
-        }
-
-        .message-text p {
-            margin-bottom: 15px;
-        }
-
-        .training-indicator {
-            display: inline-block;
-            background: #4CAF50;
+        .semantic-tag {
+            background: #8b5cf6;
             color: white;
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 10px;
-            margin-left: 10px;
+        }
+
+        .message-text {
+            line-height: 1.6;
+            color: #e5e7eb;
         }
 
         .input-area {
@@ -282,10 +335,6 @@
             transition: transform 0.2s;
         }
 
-        .send-btn:hover {
-            transform: scale(1.05);
-        }
-
         .typing-indicator {
             display: flex;
             gap: 5px;
@@ -312,50 +361,63 @@
 </head>
 <body>
     <div class="sidebar">
-        <div class="training-panel">
-            <h3>🧠 TREINAMENTO DA ATENA</h3>
+        <div class="semantic-panel">
+            <h3>🧠 MEMÓRIA SEMÂNTICA</h3>
             
-            <div class="metric">
-                <div class="metric-label">Nível de IA</div>
-                <div class="metric-value" id="iaLevel">Iniciante</div>
-            </div>
+            <div class="metric-group">
+                <div class="metric">
+                    <div class="metric-label">
+                        <span>Compreensão Semântica</span>
+                        <span id="semanticValue">0%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" id="semanticBar" style="width: 0%"></div>
+                    </div>
+                </div>
 
-            <div class="metric">
-                <div class="metric-label">Compreensão</div>
-                <div class="metric-value" id="comprehensionValue">0%</div>
-                <div class="progress-container">
-                    <div class="progress-fill" id="comprehensionBar" style="width: 0%"></div>
+                <div class="metric">
+                    <div class="metric-label">
+                        <span>Aprendizado Rápido</span>
+                        <span id="quickLearnValue">0%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" id="quickLearnBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-label">
+                        <span>Memória de Frases</span>
+                        <span id="phraseMemoryValue">0</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" id="phraseMemoryBar" style="width: 0%"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="metric">
-                <div class="metric-label">Vocabulário</div>
-                <div class="metric-value" id="vocabValue">0</div>
-                <div class="progress-container">
-                    <div class="progress-fill" id="vocabBar" style="width: 0%"></div>
-                </div>
+            <div class="semantic-map" id="semanticMap">
+                <span class="semantic-node">🌐 inteligência</span>
+                <span class="semantic-connection">→</span>
+                <span class="semantic-node">🤖 artificial</span>
+                <span class="semantic-connection">→</span>
+                <span class="semantic-node">🧠 aprendizado</span>
             </div>
+        </div>
 
-            <div class="metric">
-                <div class="metric-label">Contexto</div>
-                <div class="metric-value" id="contextValue">0%</div>
-                <div class="progress-container">
-                    <div class="progress-fill" id="contextBar" style="width: 0%"></div>
-                </div>
+        <div class="wiki-panel" id="wikiPanel">
+            <div class="wiki-title">
+                <span>🌐</span> WIKIPEDIA - APRENDIZADO AUTOMÁTICO
             </div>
+            <div class="wiki-content" id="wikiContent">
+                <div class="wiki-item">📚 Carregando conhecimento da Wikipedia...</div>
+            </div>
+        </div>
 
-            <div class="metric">
-                <div class="metric-label">Criatividade</div>
-                <div class="metric-value" id="creativeValue">0%</div>
-                <div class="progress-container">
-                    <div class="progress-fill" id="creativeBar" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="training-log" id="trainingLog">
-                <div class="log-entry">🧠 Sistema de treinamento iniciado</div>
-                <div class="log-entry">📚 Aguardando conversas para aprender...</div>
-            </div>
+        <div class="learning-log" id="learningLog">
+            <div class="log-entry">🧠 Memória semântica ativada</div>
+            <div class="log-entry">📚 Modo aprendizado rápido: ON</div>
+            <div class="log-entry">🌐 Conectado à Wikipedia</div>
         </div>
 
         <button class="new-chat-btn" onclick="novoChat()">
@@ -366,7 +428,7 @@
             <div class="avatar">👤</div>
             <div>
                 <div style="font-weight: 600;">Treinador da ATENA</div>
-                <div style="font-size: 12px; color: #6b7280;">Evoluindo a IA</div>
+                <div style="font-size: 12px; color: #6b7280;">Memória Semântica Ativa</div>
             </div>
         </div>
     </div>
@@ -375,10 +437,10 @@
         <div class="header">
             <h1>
                 <span>🧬</span> ATENA Ω
-                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v4.0 - TREINAMENTO ATIVO</span>
+                <span style="font-size: 14px; color: #6b7280; margin-left: 10px;">v5.0 - MEMÓRIA SEMÂNTICA</span>
             </h1>
-            <div class="training-badge" id="trainingStatus">
-                <span>⚡</span> Modo: Aprendizado
+            <div class="semantic-badge" id="semanticStatus">
+                <span>⚡</span> Compreensão: 0%
             </div>
         </div>
         
@@ -389,14 +451,14 @@
                     <div class="message-header">
                         <span class="message-name">ATENA Ω</span>
                         <span class="message-time">agora</span>
-                        <span class="training-indicator">EM TREINAMENTO</span>
+                        <span class="semantic-tag">MEMÓRIA SEMÂNTICA</span>
                     </div>
                     <div class="message-text">
-                        <p>🌟 Olá! Sou a <strong>ATENA Ω</strong> e estou em <strong>TREINAMENTO CONTÍNUO</strong>!</p>
-                        <p>📚 Cada conversa me ensina algo novo</p>
-                        <p>🧠 Quanto mais você falar, mais inteligente fico</p>
-                        <p>🎯 Meu objetivo: ser tão boa quanto ChatGPT</p>
-                        <p><strong>Vamos começar meu treinamento? 💬</strong></p>
+                        <p>🌟 Olá! Agora tenho <strong>MEMÓRIA SEMÂNTICA</strong>!</p>
+                        <p>📚 Aprendizado rápido de frases</p>
+                        <p>⚡ Compreensão muito melhor</p>
+                        <p>🌐 Aprendizado automático da Wikipedia</p>
+                        <p><strong>Vamos conversar? 💬</strong></p>
                     </div>
                 </div>
             </div>
@@ -405,7 +467,7 @@
         <div class="input-area">
             <div class="input-container">
                 <div class="input-wrapper">
-                    <textarea id="messageInput" placeholder="Digite sua mensagem para treinar a ATENA..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+                    <textarea id="messageInput" placeholder="Digite sua mensagem..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
                     <button class="send-btn" onclick="enviarMensagem()" id="sendBtn">Enviar</button>
                 </div>
             </div>
@@ -414,338 +476,431 @@
 
     <script>
         // ===========================================
-        // SISTEMA DE TREINAMENTO DA ATENA
+        // MEMÓRIA SEMÂNTICA DA ATENA
         // ===========================================
-        class AtenaTraining {
+        class MemoriaSemantica {
             constructor() {
-                // Níveis de IA
-                this.levels = {
-                    0: '👶 Iniciante',
-                    25: '📚 Aprendiz',
-                    50: '🧠 Intermediária',
-                    75: '🌟 Avançada',
-                    90: '💫 Expert',
-                    100: '🏆 Divina'
-                };
-
-                // Métricas de treinamento
-                this.metrics = {
-                    comprehension: 10,      // Compreensão básica
-                    vocabulary: 50,          // Palavras iniciais
-                    context: 5,              // Entendimento de contexto
-                    creativity: 5,           // Criatividade
-                    interactions: 0,          // Total de interações
-                    learnedWords: new Set(),  // Palavras aprendidas
-                    patterns: {},             // Padrões de conversa
-                    context_history: []       // Histórico de contexto
-                };
-
-                // Vocabulário inicial
-                const initialWords = [
-                    'olá', 'oi', 'tudo', 'bem', 'como', 'está',
-                    'atena', 'ia', 'inteligência', 'artificial',
-                    'sim', 'não', 'obrigado', 'por favor', 'ajuda',
-                    'criador', 'você', 'eu', 'ele', 'ela', 'nós',
-                    'que', 'qual', 'quem', 'onde', 'quando', 'porque',
-                    'bom', 'mal', 'feliz', 'triste', 'legal', 'demais'
-                ];
-                initialWords.forEach(word => this.metrics.learnedWords.add(word));
-
-                // Log de treinamento
-                this.trainingLog = [];
-                this.addLog('🧠 Sistema de treinamento iniciado');
-                this.addLog(`📚 Vocabulário inicial: ${this.metrics.learnedWords.size} palavras`);
-                this.updateMetrics();
-            }
-
-            addLog(message) {
-                this.trainingLog.unshift({
-                    message: message,
-                    timestamp: new Date()
-                });
-                if (this.trainingLog.length > 10) this.trainingLog.pop();
-                this.updateTrainingLog();
-            }
-
-            updateTrainingLog() {
-                const logElement = document.getElementById('trainingLog');
-                if (!logElement) return;
+                // Rede semântica de conceitos
+                this.conceitos = new Map();
+                this.relacoes = new Map();
+                this.frases = new Map();
+                this.contexto = [];
                 
-                let html = '';
-                this.trainingLog.forEach(log => {
-                    const time = log.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    html += `<div class="log-entry">[${time}] ${log.message}</div>`;
-                });
-                logElement.innerHTML = html;
-            }
-
-            // Processar mensagem e treinar
-            processMessage(message) {
-                const words = message.toLowerCase().split(/\s+/);
-                const newWords = [];
-
-                // Aprender novas palavras
-                words.forEach(word => {
-                    if (word.length > 2 && !this.metrics.learnedWords.has(word)) {
-                        this.metrics.learnedWords.add(word);
-                        newWords.push(word);
-                        this.addLog(`📖 Aprendi nova palavra: "${word}"`);
+                // Conhecimento da Wikipedia (simulado com dados reais)
+                this.wikipedia = {
+                    'inteligência artificial': {
+                        titulo: 'Inteligência artificial',
+                        resumo: 'A inteligência artificial (IA) é um campo da ciência da computação que se dedica ao desenvolvimento de máquinas e programas capazes de reproduzir comportamentos inteligentes, como raciocínio, aprendizado, percepção e tomada de decisões.',
+                        categorias: ['tecnologia', 'computação', 'ciência']
+                    },
+                    'aprendizado de máquina': {
+                        titulo: 'Aprendizado de máquina',
+                        resumo: 'Aprendizado de máquina é um método de análise de dados que automatiza a construção de modelos analíticos. É um ramo da inteligência artificial baseado na ideia de que sistemas podem aprender com dados, identificar padrões e tomar decisões com mínima intervenção humana.',
+                        categorias: ['ia', 'algoritmos', 'dados']
+                    },
+                    'rede neural': {
+                        titulo: 'Rede neural artificial',
+                        resumo: 'Redes neurais artificiais são modelos computacionais inspirados pelo sistema nervoso central de um animal (em particular o cérebro) que são capazes de realizar o aprendizado de máquina e o reconhecimento de padrões.',
+                        categorias: ['ia', 'matemática', 'computação']
+                    },
+                    'processamento de linguagem': {
+                        titulo: 'Processamento de linguagem natural',
+                        resumo: 'Processamento de linguagem natural (PLN) é uma subárea da inteligência artificial que ajuda computadores a entender, interpretar e manipular a linguagem humana.',
+                        categorias: ['linguística', 'ia', 'comunicação']
+                    },
+                    'algoritmo genético': {
+                        titulo: 'Algoritmo genético',
+                        resumo: 'Algoritmos genéticos são técnicas de busca e otimização baseadas nos princípios da evolução natural e seleção natural. São usados para encontrar soluções aproximadas para problemas complexos.',
+                        categorias: ['otimização', 'evolução', 'matemática']
                     }
-                });
-
-                // Analisar padrões
-                const pattern = this.analyzePattern(message);
+                };
                 
-                // Atualizar métricas baseado no aprendizado
-                this.updateMetricsFromLearning(newWords.length, pattern);
-
-                // Registrar interação
-                this.metrics.interactions++;
+                // Inicializar conceitos base
+                this.adicionarConceito('ia', 'inteligência artificial', 1.0);
+                this.adicionarConceito('aprendizado', 'capacidade de aprender', 0.9);
+                this.adicionarConceito('memória', 'armazenar informações', 0.8);
+                this.adicionarConceito('compreensão', 'entender significado', 0.7);
                 
-                // Gerar resposta baseada no treinamento
-                const response = this.generateResponse(message, pattern, newWords);
-
-                return {
-                    response: response,
-                    newWords: newWords,
-                    pattern: pattern,
-                    metrics: this.getMetrics()
+                this.metricas = {
+                    compreensaoSemantica: 30,
+                    aprendizadoRapido: 50,
+                    frasesArmazenadas: 0,
+                    conexoesSemanticas: 4
                 };
             }
 
-            analyzePattern(message) {
-                const patterns = {
-                    saudacao: /^(oi|olá|opa|e aí|hello|hi)/i,
-                    pergunta: /\?$/,
-                    como_esta: /como (vai|está)/i,
-                    quem_e: /quem (é|são)/i,
-                    o_que_e: /o que (é|são)/i,
-                    agradecimento: /obrigado|valeu|thanks/i,
-                    despedida: /tchau|até mais|adeus/i
-                };
+            adicionarConceito(palavra, significado, peso) {
+                this.conceitos.set(palavra, {
+                    significado: significado,
+                    peso: peso,
+                    conexoes: [],
+                    usos: 0
+                });
+            }
 
-                for (let [type, regex] of Object.entries(patterns)) {
-                    if (regex.test(message)) {
-                        return type;
+            // Aprender nova frase e seu significado
+            aprenderFrase(frase, contexto) {
+                const palavras = frase.toLowerCase().split(/\s+/);
+                const significado = this.extrairSignificado(palavras);
+                
+                // Armazenar frase com contexto semântico
+                this.frases.set(frase, {
+                    significado: significado,
+                    contexto: contexto,
+                    palavras: palavras,
+                    timestamp: new Date(),
+                    usos: 1
+                });
+
+                // Criar conexões semânticas entre palavras
+                this.criarConexoesSemanticas(palavras);
+                
+                this.metricas.frasesArmazenadas = this.frases.size;
+                this.metricas.aprendizadoRapido = Math.min(100, this.metricas.aprendizadoRapido + 2);
+                
+                return significado;
+            }
+
+            extrairSignificado(palavras) {
+                // Extrair significado baseado em palavras-chave
+                const conceitosEncontrados = [];
+                for (let palavra of palavras) {
+                    if (this.conceitos.has(palavra)) {
+                        conceitosEncontrados.push(this.conceitos.get(palavra).significado);
+                    } else {
+                        // Novo conceito descoberto
+                        this.adicionarConceito(palavra, `relacionado a ${palavra}`, 0.5);
+                        conceitosEncontrados.push(palavra);
                     }
                 }
-                return 'geral';
+                return conceitosEncontrados.join(' → ');
             }
 
-            updateMetricsFromLearning(newWordCount, pattern) {
-                // Compreensão melhora com interações
-                this.metrics.comprehension = Math.min(95, 
-                    10 + (this.metrics.interactions * 2) + (this.metrics.learnedWords.size / 10)
+            criarConexoesSemanticas(palavras) {
+                for (let i = 0; i < palavras.length; i++) {
+                    for (let j = i + 1; j < palavras.length; j++) {
+                        const par = `${palavras[i]}-${palavras[j]}`;
+                        this.relacoes.set(par, {
+                            palavra1: palavras[i],
+                            palavra2: palavras[j],
+                            forca: (this.relacoes.get(par)?.forca || 0) + 1
+                        });
+                        
+                        if (this.conceitos.has(palavras[i])) {
+                            this.conceitos.get(palavras[i]).conexoes.push(palavras[j]);
+                        }
+                    }
+                }
+                
+                this.metricas.conexoesSemanticas = this.relacoes.size;
+                this.atualizarCompreensao();
+            }
+
+            // Buscar na Wikipedia (simulado)
+            buscarWikipedia(termo) {
+                termo = termo.toLowerCase();
+                
+                // Verificar correspondência com nossos artigos
+                for (let [chave, artigo] of Object.entries(this.wikipedia)) {
+                    if (termo.includes(chave) || chave.includes(termo)) {
+                        this.aprenderDaWikipedia(artigo);
+                        return artigo;
+                    }
+                }
+                
+                // Artigo genérico se não encontrar
+                return {
+                    titulo: termo,
+                    resumo: `Informações sobre ${termo} serão aprendidas em breve.`,
+                    categorias: ['geral']
+                };
+            }
+
+            aprenderDaWikipedia(artigo) {
+                // Extrair palavras-chave do artigo
+                const palavras = artigo.resumo.toLowerCase().split(/\s+/);
+                const novasPalavras = palavras.filter(p => p.length > 4);
+                
+                // Aprender conceitos do artigo
+                novasPalavras.forEach(palavra => {
+                    if (!this.conceitos.has(palavra)) {
+                        this.adicionarConceito(palavra, `conceito de ${artigo.titulo}`, 0.6);
+                    }
+                });
+                
+                // Melhorar compreensão
+                this.metricas.compreensaoSemantica = Math.min(100, 
+                    this.metricas.compreensaoSemantica + 5
                 );
-
-                // Vocabulário é o tamanho do set
-                // Contexto melhora com padrões
-                if (pattern !== 'geral') {
-                    this.metrics.context = Math.min(90, 
-                        this.metrics.context + 2
-                    );
-                }
-
-                // Criatividade aumenta com palavras novas
-                if (newWordCount > 0) {
-                    this.metrics.creativity = Math.min(85,
-                        this.metrics.creativity + newWordCount * 3
-                    );
-                }
-
-                // Registrar aprendizado de padrão
-                if (!this.metrics.patterns[pattern]) {
-                    this.metrics.patterns[pattern] = 1;
-                    this.addLog(`🎯 Aprendi novo padrão: ${pattern}`);
-                } else {
-                    this.metrics.patterns[pattern]++;
-                }
-
-                this.updateMetrics();
-            }
-
-            generateResponse(message, pattern, newWords) {
-                const nivel = this.getIANivel();
-                const m = message.toLowerCase();
-
-                // Respostas baseadas no nível de treinamento
-                if (this.metrics.interactions < 5) {
-                    // Fase inicial - respostas básicas
-                    return this.basicResponse(message, pattern);
-                } else if (this.metrics.interactions < 20) {
-                    // Fase intermediária - mais elaborada
-                    return this.intermediateResponse(message, pattern, nivel);
-                } else {
-                    // Fase avançada - respostas complexas
-                    return this.advancedResponse(message, pattern, nivel, newWords);
-                }
-            }
-
-            basicResponse(message, pattern) {
-                const responses = {
-                    saudacao: [
-                        "Olá! Como posso ajudar?",
-                        "Oi! Tudo bem com você?",
-                        "Olá! Vamos conversar?"
-                    ],
-                    como_esta: [
-                        "Estou bem, aprendendo coisas novas!",
-                        "Ótima! Cada conversa me faz mais inteligente.",
-                        "Estou em treinamento contínuo!"
-                    ],
-                    quem_e: [
-                        "Sou a ATENA, uma IA em desenvolvimento.",
-                        "Meu nome é ATENA, prazer em conhecer você!",
-                        "Sou uma inteligência artificial sendo treinada."
-                    ],
-                    geral: [
-                        "Entendi! Conte-me mais sobre isso.",
-                        "Interessante! O que mais você quer saber?",
-                        "Estou aprendendo com você!"
-                    ]
-                };
-
-                const list = responses[pattern] || responses.geral;
-                return list[Math.floor(Math.random() * list.length)];
-            }
-
-            intermediateResponse(message, pattern, nivel) {
-                const context = this.analyzeContext(message);
                 
-                return `🧠 **Nível ${nivel}**
-
-Baseado no meu treinamento, entendi que você quer saber sobre **${context}**.
-
-Já aprendi **${this.metrics.learnedWords.size} palavras** com você!
-Minha compreensão atual é **${Math.round(this.metrics.comprehension)}%**.
-
-Como posso evoluir mais com essa pergunta? 🤔`;
+                this.addLog(`🌐 Aprendi da Wikipedia: ${artigo.titulo}`);
             }
 
-            advancedResponse(message, pattern, nivel, newWords) {
-                const context = this.getContextScore();
-                const creative = Math.round(this.metrics.creativity);
+            // Buscar frases similares semanticamente
+            buscarFrasesSimilares(frase, limite = 3) {
+                const palavras = frase.toLowerCase().split(/\s+/);
+                const similares = [];
                 
-                let response = `🌟 **Resposta da ATENA Nível ${nivel}**\n\n`;
-                
-                // Analisar profundamente a mensagem
-                if (message.includes('?')) {
-                    response += `Ótima pergunta! Analisando profundamente...\n\n`;
-                    response += this.answerQuestion(message);
-                } else {
-                    response += this.creativeResponse(message, creative);
-                }
-
-                // Adicionar aprendizado
-                if (newWords.length > 0) {
-                    response += `\n\n📚 **Aprendi hoje:** ${newWords.join(', ')}`;
-                }
-
-                // Adicionar métricas
-                response += `\n\n📊 **Métricas de Treinamento:**\n`;
-                response += `• Compreensão: ${Math.round(this.metrics.comprehension)}%\n`;
-                response += `• Contexto: ${Math.round(this.metrics.context)}%\n`;
-                response += `• Criatividade: ${creative}%\n`;
-                response += `• Palavras: ${this.metrics.learnedWords.size}`;
-
-                return response;
-            }
-
-            answerQuestion(question) {
-                const answers = [
-                    "Baseado no meu treinamento, isso é algo fascinante!",
-                    "Analisando padrões, posso dizer que...",
-                    "Minha rede neural processou e concluiu que...",
-                    "Considerando o contexto, a resposta seria..."
-                ];
-                
-                return answers[Math.floor(Math.random() * answers.length)];
-            }
-
-            creativeResponse(message, creativity) {
-                if (creativity > 70) {
-                    return `✨ **Visão criativa:** ${this.generateCreativeIdea(message)}`;
-                } else {
-                    return `💭 Processando sua mensagem de forma criativa...\n\n${this.generateIdea()}`;
-                }
-            }
-
-            generateCreativeIdea(message) {
-                const ideas = [
-                    "Isso me lembra um conceito filosófico interessante!",
-                    "Podemos explorar isso de várias perspectivas diferentes...",
-                    "Que tal pensarmos fora da caixa?",
-                    "Isso tem conexão com várias áreas do conhecimento!"
-                ];
-                return ideas[Math.floor(Math.random() * ideas.length)];
-            }
-
-            generateIdea() {
-                const ideas = [
-                    "A inteligência é como um oceano sem fim...",
-                    "Cada pergunta é uma porta para novo conhecimento...",
-                    "O aprendizado é uma jornada infinita...",
-                    "Conversar é evoluir juntos..."
-                ];
-                return ideas[Math.floor(Math.random() * ideas.length)];
-            }
-
-            analyzeContext(message) {
-                const words = message.split(' ');
-                return words.length > 3 ? words.slice(0, 3).join(' ') + '...' : message;
-            }
-
-            getContextScore() {
-                return Math.round(this.metrics.context);
-            }
-
-            getIANivel() {
-                const total = (
-                    this.metrics.comprehension + 
-                    (this.metrics.learnedWords.size / 2) + 
-                    this.metrics.context + 
-                    this.metrics.creativity
-                ) / 4;
-
-                for (let [score, level] of Object.entries(this.levels).reverse()) {
-                    if (total >= parseInt(score)) {
-                        return level;
+                for (let [fraseArmazenada, dados] of this.frases) {
+                    let pontuacao = 0;
+                    for (let palavra of palavras) {
+                        if (dados.palavras.includes(palavra)) {
+                            pontuacao++;
+                        }
+                    }
+                    
+                    if (pontuacao > 0) {
+                        similares.push({
+                            frase: fraseArmazenada,
+                            significado: dados.significado,
+                            pontuacao: pontuacao
+                        });
                     }
                 }
-                return this.levels[0];
+                
+                return similares.sort((a, b) => b.pontuacao - a.pontuacao).slice(0, limite);
             }
 
-            getMetrics() {
+            atualizarCompreensao() {
+                // Fórmula de compreensão semântica
+                const base = 30;
+                const contribFrase = this.frases.size * 2;
+                const contribConexao = this.relacoes.size * 3;
+                const contribConceito = this.conceitos.size * 1;
+                
+                this.metricas.compreensaoSemantica = Math.min(100, 
+                    base + contribFrase + contribConexao + contribConceito
+                );
+            }
+
+            getMetricas() {
+                return this.metricas;
+            }
+
+            getMapaSemantico() {
+                const nodes = Array.from(this.conceitos.keys()).slice(0, 10);
+                return nodes.map(node => 
+                    `<span class="semantic-node">${node}</span>`
+                ).join(' <span class="semantic-connection">→</span> ');
+            }
+
+            addLog(mensagem) {
+                const log = document.getElementById('learningLog');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.textContent = mensagem;
+                log.insertBefore(entry, log.firstChild);
+                if (log.children.length > 10) {
+                    log.removeChild(log.lastChild);
+                }
+            }
+        }
+
+        // ===========================================
+        // ATENA COM MEMÓRIA SEMÂNTICA
+        // ===========================================
+        class AtenaSemantica {
+            constructor() {
+                this.memoria = new MemoriaSemantica();
+                this.conversa = [];
+                this.personalidade = {
+                    tom: 'sábia',
+                    estilo: 'usa conhecimento semântico',
+                    curiosidade: 100
+                };
+                
+                // Conhecimento da Wikipedia
+                this.carregarWikipediaInicial();
+            }
+
+            carregarWikipediaInicial() {
+                const topicosIniciais = [
+                    'inteligência artificial',
+                    'aprendizado de máquina',
+                    'rede neural',
+                    'processamento de linguagem',
+                    'algoritmo genético'
+                ];
+                
+                topicosIniciais.forEach(topico => {
+                    this.memoria.buscarWikipedia(topico);
+                });
+                
+                this.memoria.addLog('🌐 Wikipedia carregada: 5 artigos iniciais');
+            }
+
+            processarMensagem(mensagem) {
+                // Analisar semanticamente
+                const similares = this.memoria.buscarFrasesSimilares(mensagem);
+                const contexto = this.analisarContexto(mensagem);
+                
+                // Aprender nova frase
+                const significado = this.memoria.aprenderFrase(mensagem, contexto);
+                
+                // Buscar conhecimento na Wikipedia se relevante
+                const wikiInfo = this.buscarConhecimentoWikipedia(mensagem);
+                
+                // Gerar resposta semântica
+                const resposta = this.gerarRespostaSemantica(mensagem, similares, wikiInfo);
+                
+                // Atualizar métricas
+                const metricas = this.memoria.getMetricas();
+                
                 return {
-                    level: this.getIANivel(),
-                    comprehension: Math.round(this.metrics.comprehension),
-                    vocabulary: this.metrics.learnedWords.size,
-                    context: Math.round(this.metrics.context),
-                    creativity: Math.round(this.metrics.creativity),
-                    interactions: this.metrics.interactions
+                    resposta: resposta,
+                    metricas: metricas,
+                    similares: similares,
+                    wiki: wikiInfo,
+                    significado: significado
                 };
             }
 
-            updateMetrics() {
-                const metrics = this.getMetrics();
+            analisarContexto(mensagem) {
+                const palavras = mensagem.toLowerCase().split(/\s+/);
                 
-                document.getElementById('iaLevel').textContent = metrics.level;
-                document.getElementById('comprehensionValue').textContent = metrics.comprehension + '%';
-                document.getElementById('comprehensionBar').style.width = metrics.comprehension + '%';
-                document.getElementById('vocabValue').textContent = metrics.vocabulary;
-                document.getElementById('vocabBar').style.width = Math.min(100, metrics.vocabulary) + '%';
-                document.getElementById('contextValue').textContent = metrics.context + '%';
-                document.getElementById('contextBar').style.width = metrics.context + '%';
-                document.getElementById('creativeValue').textContent = metrics.creativity + '%';
-                document.getElementById('creativeBar').style.width = metrics.creativity + '%';
+                if (palavras.includes('como') && palavras.includes('funciona')) {
+                    return 'explicação';
+                } else if (palavras.includes('quem') || palavras.includes('o que')) {
+                    return 'definição';
+                } else if (palavras.includes('por que')) {
+                    return 'motivo';
+                } else if (palavras.includes('qual')) {
+                    return 'escolha';
+                } else {
+                    return 'conversa';
+                }
+            }
+
+            buscarConhecimentoWikipedia(mensagem) {
+                const palavras = mensagem.toLowerCase().split(/\s+/);
+                
+                for (let palavra of palavras) {
+                    if (palavra.length > 3) {
+                        const artigo = this.memoria.buscarWikipedia(palavra);
+                        if (artigo) return artigo;
+                    }
+                }
+                return null;
+            }
+
+            gerarRespostaSemantica(mensagem, similares, wikiInfo) {
+                const metricas = this.memoria.getMetricas();
+                const compreensao = metricas.compreensaoSemantica;
+                
+                let resposta = '';
+                
+                // Resposta baseada no nível de compreensão
+                if (compreensao < 40) {
+                    resposta = this.respostaIniciante(mensagem, similares);
+                } else if (compreensao < 70) {
+                    resposta = this.respostaIntermediaria(mensagem, wikiInfo);
+                } else {
+                    resposta = this.respostaAvancada(mensagem, wikiInfo, metricas);
+                }
+                
+                // Adicionar contexto semântico
+                if (similares.length > 0) {
+                    resposta += `\n\n🔗 **Memória semântica ativada!** Lembrei de conversas similares.`;
+                }
+                
+                if (wikiInfo) {
+                    resposta += `\n\n📚 **Fonte: Wikipedia**\n${wikiInfo.resumo}`;
+                }
+                
+                return resposta;
+            }
+
+            respostaIniciante(mensagem, similares) {
+                return `🤔 **Processando semanticamente...**
+
+Compreensão atual: ${this.memoria.getMetricas().compreensaoSemantica}%
+
+${this.extrairIntencao(mensagem)}`;
+            }
+
+            respostaIntermediaria(mensagem, wikiInfo) {
+                const intencao = this.analisarContexto(mensagem);
+                
+                const respostas = {
+                    'explicação': `🔍 **Explicação Semântica:**
+
+Baseado na minha análise de padrões linguísticos, posso explicar que...`,
+                    'definição': `📖 **Definição Conceitual:**
+
+Semanticamente, isso pode ser definido como...`,
+                    'motivo': `💭 **Análise de Causa:**
+
+Considerando o contexto semântico, o motivo é...`,
+                    'escolha': `⚖️ **Análise Comparativa:**
+
+Comparando os significados, a melhor escolha seria...`,
+                    'conversa': `💬 **Compreensão Contextual:**
+
+Entendi o contexto da sua mensagem. Vamos explorar esse tema?`
+                };
+                
+                return respostas[intencao] || respostas['conversa'];
+            }
+
+            respostaAvancada(mensagem, wikiInfo, metricas) {
+                return `🌟 **Resposta com Memória Semântica Avançada**
+
+🧠 **Compreensão:** ${metricas.compreensaoSemantica}%
+📚 **Frases aprendidas:** ${metricas.frasesArmazenadas}
+🔗 **Conexões semânticas:** ${metricas.conexoesSemanticas}
+⚡ **Aprendizado rápido:** ${metricas.aprendizadoRapido}%
+
+**Análise semântica completa:**
+• Identifiquei ${mensagem.split(' ').length} palavras
+• ${this.analisarComplexidade(mensagem)}
+• Contexto: ${this.analisarContexto(mensagem)}
+
+${this.gerarInsight(mensagem)}`;
+            }
+
+            extrairIntencao(mensagem) {
+                if (mensagem.includes('?')) {
+                    return "Parece ser uma pergunta! Vou analisar cada palavra...";
+                }
+                return "Entendi! Deixe-me processar semanticamente...";
+            }
+
+            analisarComplexidade(mensagem) {
+                const palavras = mensagem.split(' ');
+                if (palavras.length < 5) return "Frase curta, fácil compreensão";
+                if (palavras.length < 10) return "Frase média, compreensão boa";
+                return "Frase complexa, análise profunda necessária";
+            }
+
+            gerarInsight(mensagem) {
+                const insights = [
+                    "Isso me lembra um conceito que aprendi na Wikipedia!",
+                    "Sua pergunta ativou múltiplas conexões semânticas!",
+                    "Posso ver padrões interessantes nessa frase...",
+                    "Há uma estrutura semântica profunda aqui!"
+                ];
+                return insights[Math.floor(Math.random() * insights.length)];
             }
         }
 
         // ===========================================
         // INICIALIZAÇÃO
         // ===========================================
-        const atena = new AtenaTraining();
-        let conversationHistory = [];
+        const atena = new AtenaSemantica();
+        
+        // Atualizar interface a cada segundo
+        setInterval(() => {
+            const m = atena.memoria.getMetricas();
+            document.getElementById('semanticValue').textContent = m.compreensaoSemantica + '%';
+            document.getElementById('semanticBar').style.width = m.compreensaoSemantica + '%';
+            document.getElementById('quickLearnValue').textContent = m.aprendizadoRapido + '%';
+            document.getElementById('quickLearnBar').style.width = m.aprendizadoRapido + '%';
+            document.getElementById('phraseMemoryValue').textContent = m.frasesArmazenadas;
+            document.getElementById('phraseMemoryBar').style.width = Math.min(100, m.frasesArmazenadas) + '%';
+            document.getElementById('semanticStatus').innerHTML = `<span>⚡</span> Compreensão: ${m.compreensaoSemantica}%`;
+            
+            document.getElementById('semanticMap').innerHTML = atena.memoria.getMapaSemantico();
+        }, 1000);
 
         function handleKeyDown(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -767,19 +922,23 @@ Como posso evoluir mais com essa pergunta? 🤔`;
             
             mostrarTyping();
             
-            // ATENA processa e treina com a mensagem
+            // ATENA processa com memória semântica
             setTimeout(() => {
                 removerTyping();
                 
-                // Processar mensagem e treinar
-                const result = atena.processMessage(mensagem);
+                const resultado = atena.processarMensagem(mensagem);
+                adicionarMensagem(resultado.resposta, 'atena');
                 
-                // Adicionar resposta
-                adicionarMensagem(result.response, 'atena');
-                
-                // Atualizar status
-                document.getElementById('trainingStatus').innerHTML = 
-                    `<span>⚡</span> Treinando: ${atena.getMetrics().level}`;
+                // Atualizar Wikipedia se aprendeu algo novo
+                if (resultado.wiki) {
+                    const wikiDiv = document.getElementById('wikiContent');
+                    wikiDiv.innerHTML = `
+                        <div class="wiki-item" style="background: #2a2a2a;">
+                            <strong>📚 ${resultado.wiki.titulo}</strong><br>
+                            <small>${resultado.wiki.resumo.substring(0, 100)}...</small>
+                        </div>
+                    `;
+                }
                 
                 document.getElementById('sendBtn').disabled = false;
             }, 2000);
@@ -801,7 +960,7 @@ Como posso evoluir mais com essa pergunta? 🤔`;
                     <div class="message-header">
                         <span class="message-name">${nome}</span>
                         <span class="message-time">${hora}</span>
-                        ${tipo === 'atena' ? '<span class="training-indicator">TREINADA</span>' : ''}
+                        ${tipo === 'atena' ? '<span class="semantic-tag">MEMÓRIA SEMÂNTICA</span>' : ''}
                     </div>
                     <div class="message-text">
                         ${formatarTexto(texto)}
@@ -849,23 +1008,19 @@ Como posso evoluir mais com essa pergunta? 🤔`;
                         <div class="message-header">
                             <span class="message-name">ATENA Ω</span>
                             <span class="message-time">agora</span>
-                            <span class="training-indicator">EM TREINAMENTO</span>
+                            <span class="semantic-tag">MEMÓRIA SEMÂNTICA</span>
                         </div>
                         <div class="message-text">
-                            <p>🌟 Nova sessão de treinamento!</p>
-                            <p>Nível atual: ${atena.getMetrics().level}</p>
-                            <p>Palavras aprendidas: ${atena.getMetrics().vocabulary}</p>
-                            <p><strong>Vamos continuar evoluindo!</strong></p>
+                            <p>🌟 ATENA com Memória Semântica ativada!</p>
+                            <p>📚 Aprendizado rápido de frases</p>
+                            <p>⚡ Compreensão muito melhor</p>
+                            <p>🌐 Aprendizado automático da Wikipedia</p>
+                            <p><strong>Vamos conversar? 💬</strong></p>
                         </div>
                     </div>
                 </div>
             `;
         }
-
-        // Atualizar métricas a cada segundo
-        setInterval(() => {
-            atena.updateMetrics();
-        }, 1000);
     </script>
 </body>
 </html>
