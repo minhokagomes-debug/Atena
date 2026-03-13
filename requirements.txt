@@ -14,3 +14,7 @@ sentence-transformers
 fastapi
 uvicorn
 pydantic
+python-multipart
+Pillow
+pytesseract
+
