@@ -14,4 +14,3 @@ sentence-transformers
 fastapi
 uvicorn
 pydantic
-torch==2.2.1 --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
