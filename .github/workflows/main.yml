@@ -16,14 +16,17 @@ on:
           - '5'
           - '10'
 
-# Permissões mínimas necessárias
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 env:
   PYTHON_VERSION: '3.11'
   GENERATIONS: ${{ github.event.inputs.generations || '3' }}
+  # Injetando as APIs que você cadastrou no cérebro da Atena
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+  NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
 
 jobs:
   evoluir:
@@ -36,13 +39,15 @@ jobs:
       run: |
         echo "╔════════════════════════════════════════╗"
         echo "║     ATENA Ω - EVOLUÇÃO DIVINA         ║"
-        echo "║     Iniciando evolução...             ║"
+        echo "║     Conectando APIs de Conhecimento   ║"
         echo "╚════════════════════════════════════════╝"
         echo "📅 Data: $(date)"
-        echo "🎯 Gerações: ${{ env.GENERATIONS }}"
+        echo "🎯 Gerações para processar: ${{ env.GENERATIONS }}"
     
     - name: 📥 Checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Necessário para o Auto-Commit funcionar
       
     - name: 🐍 Setup Python
       uses: actions/setup-python@v5
@@ -52,59 +57,50 @@ jobs:
     - name: 📦 Instalar dependências
       run: |
         python -m pip install --upgrade pip
-        pip install numpy scikit-learn psutil joblib
+        pip install numpy scikit-learn psutil joblib requests beautifulsoup4 fastapi uvicorn Pillow
         
-    - name: 📂 Criar diretórios
+    - name: 📂 Criar diretórios de memória
       run: |
-        mkdir -p resultados logs modelos cache
+        mkdir -p resultados logs modelos cache atena_data/vision_input
         
-    - name: 🔮 Executar ATENA Core
+    - name: 🔮 Executar ATENA Core (Auto-Modificação)
       id: execucao
       run: |
-        echo "🚀 Iniciando execução..."
+        echo "🚀 Iniciando motor de evolução..."
         
-        # Verificar se o arquivo existe
-        if [ ! -f "atena_core.py" ]; then
-          echo "❌ ERRO: Arquivo atena_core.py não encontrado!"
+        # AJUSTE: Se seu arquivo principal for main.py, mantenha assim:
+        FILENAME="main.py"
+        
+        if [ ! -f "$FILENAME" ]; then
+          echo "❌ ERRO: Arquivo $FILENAME não encontrado no repositório!"
+          ls -R # Lista os arquivos para ajudar você a debugar
           exit 1
         fi
         
-        # Executar com timeout
-        timeout 300 python atena_core.py ${{ env.GENERATIONS }} || {
-          echo "⚠️ Timeout após 5 minutos"
-        }
+        # Execução real do cérebro
+        python $FILENAME ${{ env.GENERATIONS }}
         
-        echo "✅ Execução concluída"
+        echo "✅ Ciclo de processamento concluído"
         
-    - name: 📊 Gerar relatório
+    - name: 📊 Gerar Relatório de Inteligência
       run: |
-        echo "# 🧬 Relatório ATENA Ω" > relatorio.md
-        echo "" >> relatorio.md
-        echo "## 📊 Informações" >> relatorio.md
+        echo "# 🧬 Relatório de Ciclo ATENA Ω" > relatorio.md
         echo "- **Data:** $(date)" >> relatorio.md
-        echo "- **Gerações:** ${{ env.GENERATIONS }}" >> relatorio.md
-        echo "- **Status:** ✅ Concluído" >> relatorio.md
-        echo "" >> relatorio.md
+        echo "- **Gerações Processadas:** ${{ env.GENERATIONS }}" >> relatorio.md
+        echo "- **APIs Ativas:** GitHub, Grok, News" >> relatorio.md
+        echo "---" >> relatorio.md
         
-        if [ -f "resultados/melhor_fitness.txt" ]; then
-          echo "## 🏆 Melhor Fitness" >> relatorio.md
-          echo "```" >> relatorio.md
-          cat resultados/melhor_fitness.txt >> relatorio.md
-          echo "```" >> relatorio.md
-        fi
-        
-    - name: 📤 Upload artifacts
+    - name: 📤 Salvar Memória (Artifacts)
       uses: actions/upload-artifact@v4
       with:
-        name: atena-resultados-${{ github.run_id }}
+        name: atena-brain-data-${{ github.run_id }}
         path: |
+          atena_data/
           resultados/
-          logs/
           relatorio.md
         retention-days: 7
-        if-no-files-found: warn
         
     - name: ✅ Finalização
       run: |
-        echo "✅ Evolução concluída com sucesso!"
-        echo "📁 Resultados salvos nos artifacts"
+        echo "✅ Evolução concluída. Próximo ciclo em 30 minutos."
+        
