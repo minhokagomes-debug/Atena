@@ -1,3 +1,6 @@
+--index-url https://download.pytorch.org/whl/cpu
+torch==2.1.2
+--extra-index-url https://pypi.org/simple
 numpy==1.26.3
 scipy==1.11.4
 pandas==2.1.4
@@ -10,9 +13,7 @@ matplotlib==3.8.2
 seaborn==0.13.0
 scikit-learn==1.3.2
 transformers==4.36.2
-torch==2.1.2
 sentence-transformers==2.2.2
 fastapi
 uvicorn
-scikit-learn
 pydantic
