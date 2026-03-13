@@ -3,247 +3,108 @@ name: 🧬 ATENA Ω - Evolução Divina
 on:
   schedule:
     - cron: '*/30 * * * *'  # A cada 30 minutos
-  workflow_dispatch:  # Permite execução manual
+  workflow_dispatch:  # Execução manual
     inputs:
       generations:
         description: 'Número de gerações'
         required: true
-        default: '5'
+        default: '3'
         type: choice
         options:
+          - '1'
           - '3'
           - '5'
           - '10'
-          - '20'
-      model_version:
-        description: 'Versão do modelo'
-        required: true
-        default: 'latest'
-        type: string
 
-# Permissões necessárias
+# Permissões mínimas necessárias
 permissions:
   contents: write
-  actions: write
-  checks: write
+  actions: read
 
 env:
   PYTHON_VERSION: '3.11'
-  MAX_ITERATIONS: ${{ github.event.inputs.generations || '5' }}
-  TIMEOUT_MINUTES: 15
-  CACHE_KEY: atena-${{ github.run_id }}
+  GENERATIONS: ${{ github.event.inputs.generations || '3' }}
 
 jobs:
   evoluir:
-    name: 🧬 Evolução Neural
+    name: 🧠 Evolução Neural
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUT_MINUTES }}
+    timeout-minutes: 10
     
-    # Cache para modelos treinados
-    strategy:
-      matrix:
-        python-version: ['3.11']
-      max-parallel: 1  # Executa um por vez para evitar conflitos
-
     steps:
-    - name: ⚡ Banner Inicial
+    - name: ⚡ Banner
       run: |
-        echo '
-        ╔══════════════════════════════════════════════════════════════╗
-        ║                                                              ║
-        ║     █████╗ ████████╗███████╗███╗   ██╗ █████║     Ω         ║
-        ║    ██╔══██╗╚══██╔══╝██╔════╝████╗  ██║██╔══██║               ║
-        ║    ███████║   ██║   █████╗  ██╔██╗ ██║███████║               ║
-        ║    ██╔══██║   ██║   ██╔══╝  ██║╚██╗██║██╔══██║               ║
-        ║    ██║  ██║   ██║   ███████╗██║ ╚████║██║  ██║               ║
-        ║    ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝               ║
-        ║                                                              ║
-        ║           🧠 EVOLUÇÃO DIVINA COM REDES NEURAIS              ║
-        ║                                                              ║
-        ╚══════════════════════════════════════════════════════════════╝
-        '
-        echo "🎯 Run ID: ${{ github.run_id }}"
-        echo "🎯 Gerações: ${{ env.MAX_ITERATIONS }}"
-        echo "🎯 Início: $(date)"
-
-    - name: 📥 Checkout do código
+        echo "╔════════════════════════════════════════╗"
+        echo "║     ATENA Ω - EVOLUÇÃO DIVINA         ║"
+        echo "║     Iniciando evolução...             ║"
+        echo "╚════════════════════════════════════════╝"
+        echo "📅 Data: $(date)"
+        echo "🎯 Gerações: ${{ env.GENERATIONS }}"
+    
+    - name: 📥 Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Pega todo histórico
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: 🐍 Setup Python ${{ env.PYTHON_VERSION }}
+      
+    - name: 🐍 Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
-        cache-dependency-path: '**/requirements.txt'
-
-    - name: 📦 Cache para modelos treinados
-      uses: actions/cache@v4
-      id: model-cache
-      with:
-        path: |
-          ~/.atena_neural/models/
-          ~/.atena_neural/vectors/
-          ~/.atena_neural/memory.db
-        key: atena-models-${{ runner.os }}-${{ hashFiles('**/*.py') }}
-        restore-keys: |
-          atena-models-${{ runner.os }}-
-          atena-models-
-
+        
     - name: 📦 Instalar dependências
       run: |
         python -m pip install --upgrade pip
-        pip install --upgrade \
-          numpy \
-          scikit-learn \
-          psutil \
-          joblib \
-          tqdm
-
-    - name: 📊 Verificar ambiente
-      run: |
-        python --version
-        pip list | grep -E "numpy|scikit-learn|psutil|joblib"
-        echo "🧠 CPU Info:"
-        lscpu | grep "Model name"
-        echo "💾 Memória:"
-        free -h
-
-    - name: 🔮 Executar ATENA Neural
-      id: evolution
-      run: |
-        echo "🚀 Iniciando evolução com ${{ env.MAX_ITERATIONS }} gerações..."
+        pip install numpy scikit-learn psutil joblib
         
-        # Criar diretório para logs
-        mkdir -p logs resultados modelos
-        
-        # Executar o script de evolução
-        python -c "
-import sys
-sys.path.append('.')
-from atena_neural import NeuralEvolutionSystem, SAMPLE_CODE
-
-# Criar sistema
-system = NeuralEvolutionSystem()
-
-try:
-    # Inicializar
-    system.initialize(SAMPLE_CODE)
-    
-    # Evoluir
-    system.evolve(iterations=int('${{ env.MAX_ITERATIONS }}'))
-    
-    # Gerar relatório
-    system.report()
-    
-    # Salvar melhor versão
-    if system.population:
-        best = system.population[0]
-        with open('resultados/melhor_versao.txt', 'w') as f:
-            f.write(f\"Melhor versão: {best['id']}\\n\")
-            f.write(f\"Fitness: {best['fitness']:.4f}\\n\")
-            f.write(f\"Template: {best.get('template', 'N/A')}\\n\")
-            f.write(f\"Geração: {best['generation']}\\n\")
-            
-        # Salvar código da melhor versão
-        with open('resultados/melhor_codigo.py', 'w') as f:
-            f.write(best['code'])
-    
-    system.close()
-    
-except Exception as e:
-    print(f'Erro: {e}')
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
-"
-      continue-on-error: false
-
-    - name: 📊 Gerar relatório de performance
+    - name: 📂 Criar diretórios
       run: |
-        echo "# 📊 Relatório da Evolução" > relatorio.md
+        mkdir -p resultados logs modelos cache
+        
+    - name: 🔮 Executar ATENA Core
+      id: execucao
+      run: |
+        echo "🚀 Iniciando execução..."
+        
+        # Verificar se o arquivo existe
+        if [ ! -f "atena_core.py" ]; then
+          echo "❌ ERRO: Arquivo atena_core.py não encontrado!"
+          exit 1
+        fi
+        
+        # Executar com timeout
+        timeout 300 python atena_core.py ${{ env.GENERATIONS }} || {
+          echo "⚠️ Timeout após 5 minutos"
+        }
+        
+        echo "✅ Execução concluída"
+        
+    - name: 📊 Gerar relatório
+      run: |
+        echo "# 🧬 Relatório ATENA Ω" > relatorio.md
         echo "" >> relatorio.md
-        echo "## 🧬 Informações da Execução" >> relatorio.md
-        echo "" >> relatorio.md
-        echo "- **Run ID:** ${{ github.run_id }}" >> relatorio.md
+        echo "## 📊 Informações" >> relatorio.md
         echo "- **Data:** $(date)" >> relatorio.md
-        echo "- **Gerações:** ${{ env.MAX_ITERATIONS }}" >> relatorio.md
+        echo "- **Gerações:** ${{ env.GENERATIONS }}" >> relatorio.md
         echo "- **Status:** ✅ Concluído" >> relatorio.md
         echo "" >> relatorio.md
         
-        if [ -f "resultados/melhor_versao.txt" ]; then
-          echo "## 🏆 Melhor Versão" >> relatorio.md
-          echo '```' >> relatorio.md
-          cat resultados/melhor_versao.txt >> relatorio.md
-          echo '```' >> relatorio.md
+        if [ -f "resultados/melhor_fitness.txt" ]; then
+          echo "## 🏆 Melhor Fitness" >> relatorio.md
+          echo "```" >> relatorio.md
+          cat resultados/melhor_fitness.txt >> relatorio.md
+          echo "```" >> relatorio.md
         fi
-
-    - name: 📤 Upload dos resultados
+        
+    - name: 📤 Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: atena-evolucao-${{ github.run_id }}
+        name: atena-resultados-${{ github.run_id }}
         path: |
           resultados/
           logs/
-          modelos/
           relatorio.md
-          *.log
-        retention-days: 30
-        compression-level: 6
-
-    - name: 📤 Upload do modelo treinado
-      uses: actions/upload-artifact@v4
-      with:
-        name: atena-modelo-${{ github.run_id }}
-        path: ~/.atena_neural/models/
-        retention-days: 90  # Modelos ficam mais tempo
-
-    - name: 🏷️ Criar release se for melhoria significativa
-      if: success() && github.event_name == 'schedule'
-      run: |
-        # Verificar se houve melhoria significativa
-        if [ -f "resultados/melhor_versao.txt" ]; then
-          FITNESS=$(grep "Fitness:" resultados/melhor_versao.txt | cut -d' ' -f2)
-          echo "Fitness atual: $FITNESS"
-          
-          # Criar release tag
-          RELEASE_TAG="evolucao-$(date +%Y%m%d-%H%M%S)"
-          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
-        fi
-
+        retention-days: 7
+        if-no-files-found: warn
+        
     - name: ✅ Finalização
       run: |
-        echo '
-        ╔══════════════════════════════════════════════════════════════╗
-        ║                                                              ║
-        ║     ✅ EVOLUÇÃO CONCLUÍDA COM SUCESSO                       ║
-        ║                                                              ║
-        ║     📊 Resultados salvos nos artifacts                      ║
-        ║     🧠 Modelo neural atualizado                             ║
-        ║     🔄 Próxima execução em 30 minutos                       ║
-        ║                                                              ║
-        ╚══════════════════════════════════════════════════════════════╝
-        '
-        
-    - name: 🔔 Notificação (opcional)
-      if: always()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const status = '${{ job.status }}';
-          const runId = '${{ github.run_id }}';
-          const generations = '${{ env.MAX_ITERATIONS }}';
-          
-          let message = `🧬 **ATENA Ω - Evolução ${status === 'success' ? '✅ Sucesso' : '❌ Falha'}**\n`;
-          message += `🔢 Gerações: ${generations}\n`;
-          message += `🔗 Run: https://github.com/${{ github.repository }}/actions/runs/${runId}`;
-          
-          console.log(message);
-
-    - name: 🧹 Limpeza
-      if: always()
-      run: |
-        echo "🧹 Limpando arquivos temporários..."
-        rm -rf /tmp/tmp* 2>/dev/null || true
+        echo "✅ Evolução concluída com sucesso!"
+        echo "📁 Resultados salvos nos artifacts"
