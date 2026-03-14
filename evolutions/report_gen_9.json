@@ -1,0 +1,15 @@
+{
+  "geracao_atual": 9,
+  "total_memorias": 16,
+  "total_padroes": 10,
+  "total_evolucoes": 2,
+  "categorias": {
+    "evolucao": 2,
+    "geral": 5,
+    "processamento": 4,
+    "reflexao": 5
+  },
+  "score_atual": 73.57142857142857,
+  "score_medio_historico": 51.45,
+  "timestamp": "2026-03-14T01:34:06.588515"
+}
