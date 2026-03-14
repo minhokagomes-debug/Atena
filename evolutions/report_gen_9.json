@@ -1,15 +1,15 @@
 {
   "geracao_atual": 9,
-  "total_memorias": 160,
+  "total_memorias": 172,
   "total_padroes": 16,
-  "total_evolucoes": 38,
+  "total_evolucoes": 41,
   "categorias": {
-    "evolucao": 38,
+    "evolucao": 41,
     "geral": 5,
-    "processamento": 52,
-    "reflexao": 65
+    "processamento": 56,
+    "reflexao": 70
   },
-  "score_atual": 90.73417721518987,
-  "score_medio_historico": 87.59,
-  "timestamp": "2026-03-14T19:21:49.575874"
+  "score_atual": 90.73529411764706,
+  "score_medio_historico": 87.82,
+  "timestamp": "2026-03-14T20:00:38.656794"
 }
