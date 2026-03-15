@@ -1352,20 +1352,21 @@ class AtenaApp:
 # ============================================================================
 
 if __name__ == "__main__":
-    print("""
-    ╔══════════════════════════════════════════════════════════════╗
-    ║  🚀 ATENA NEURAL - AUTO-EVOLUÇÃO REAL COMPLETA               ║
-    ║  Mutações AST | GitHub com embeddings | News API            ║
-    ║  Sandbox Docker | Preditor | Deploy automático              ║
-    ╚══════════════════════════════════════════════════════════════╝
-    """)
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--auto", action="store_true", help="Modo autônomo")
+    parser.add_argument("--cycles", type=int, default=0, help="Número de ciclos a executar (0 = infinito)")
     args = parser.parse_args()
 
     app = AtenaApp()
     if args.auto:
-        app.start_autonomous()
+        if args.cycles > 0:
+            # Executa N ciclos e sai
+            for i in range(args.cycles):
+                app.core.evolve_one_cycle()
+                if i < args.cycles - 1:
+                    time.sleep(2)
+        else:
+            app.start_autonomous()
     else:
         app.run_interactive()
