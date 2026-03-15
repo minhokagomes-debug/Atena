@@ -3,7 +3,7 @@ name: 🧬 ATENA Ω - Evolução Divina
 on:
   schedule:
     - cron: '*/30 * * * *'  # A cada 30 minutos
-  workflow_dispatch:  # Execução manual
+  workflow_dispatch:
     inputs:
       generations:
         description: 'Número de gerações'
@@ -23,16 +23,20 @@ permissions:
 env:
   PYTHON_VERSION: '3.11'
   GENERATIONS: ${{ github.event.inputs.generations || '3' }}
-  # Injetando as APIs que você cadastrou no cérebro da Atena
-  GH_TOKEN: ${{ secrets.GH_TOKEN }}
-  GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
+  # Mapeamento correto das secrets para as variáveis usadas no código
+  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  XAI_API_KEY: ${{ secrets.GROK_API_KEY }}
   NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+  # Opcionais para deploy (adicione como secrets no repositório se desejar)
+  DEPLOY_GIT_REPO: ${{ secrets.DEPLOY_GIT_REPO }}
+  DEPLOY_DOCKER_IMAGE: ${{ secrets.DEPLOY_DOCKER_IMAGE }}
+  DEPLOY_COMMAND: ${{ secrets.DEPLOY_COMMAND }}
 
 jobs:
   evoluir:
     name: 🧠 Evolução Neural
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20  # Aumentado para comportar aprendizado do GitHub
     
     steps:
     - name: ⚡ Banner
@@ -47,7 +51,7 @@ jobs:
     - name: 📥 Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Necessário para o Auto-Commit funcionar
+        fetch-depth: 0  # Necessário para auto-commit (se usado)
       
     - name: 🐍 Setup Python
       uses: actions/setup-python@v5
@@ -57,28 +61,35 @@ jobs:
     - name: 📦 Instalar dependências
       run: |
         python -m pip install --upgrade pip
-        pip install numpy scikit-learn psutil joblib requests beautifulsoup4 fastapi uvicorn Pillow
+        pip install astor radon requests numpy scikit-learn sentence-transformers
+        # Opcional para deploy Docker (descomente se for usar)
+        # pip install docker
         
     - name: 📂 Criar diretórios de memória
       run: |
-        mkdir -p resultados logs modelos cache atena_data/vision_input
+        mkdir -p atena_evolution/code \
+                 atena_evolution/backups \
+                 atena_evolution/knowledge \
+                 atena_evolution/sandbox \
+                 atena_evolution/models \
+                 atena_evolution/deploy
         
     - name: 🔮 Executar ATENA Core (Auto-Modificação)
       id: execucao
       run: |
         echo "🚀 Iniciando motor de evolução..."
         
-        # AJUSTE: Se seu arquivo principal for main.py, mantenha assim:
+        # Nome do arquivo principal (ajuste se necessário)
         FILENAME="main.py"
         
         if [ ! -f "$FILENAME" ]; then
           echo "❌ ERRO: Arquivo $FILENAME não encontrado no repositório!"
-          ls -R # Lista os arquivos para ajudar você a debugar
+          ls -la
           exit 1
         fi
         
-        # Execução real do cérebro
-        python $FILENAME ${{ env.GENERATIONS }}
+        # Executa o número especificado de ciclos no modo automático
+        python $FILENAME --auto --cycles ${{ env.GENERATIONS }}
         
         echo "✅ Ciclo de processamento concluído"
         
@@ -88,6 +99,21 @@ jobs:
         echo "- **Data:** $(date)" >> relatorio.md
         echo "- **Gerações Processadas:** ${{ env.GENERATIONS }}" >> relatorio.md
         echo "- **APIs Ativas:** GitHub, Grok, News" >> relatorio.md
+        
+        # Extrai últimas métricas do banco de conhecimento (se existir)
+        if [ -f atena_evolution/knowledge/knowledge.db ]; then
+          echo "" >> relatorio.md
+          echo "## 📊 Últimas Evoluções" >> relatorio.md
+          echo "| Geração | Mutação | Score Antigo | Score Novo | Substituiu? |" >> relatorio.md
+          echo "|---------|---------|--------------|------------|-------------|" >> relatorio.md
+          sqlite3 atena_evolution/knowledge/knowledge.db \
+            "SELECT generation, mutation, old_score, new_score, \
+             CASE WHEN replaced THEN '✅' ELSE '❌' END \
+             FROM evolution_metrics ORDER BY generation DESC LIMIT 5;" \
+            -csv | while IFS=',' read gen mut old new rep; do
+            echo "| $gen | ${mut:0:30}... | $old | $new | $rep |" >> relatorio.md
+          done
+        fi
         echo "---" >> relatorio.md
         
     - name: 📤 Salvar Memória (Artifacts)
@@ -95,12 +121,10 @@ jobs:
       with:
         name: atena-brain-data-${{ github.run_id }}
         path: |
-          atena_data/
-          resultados/
+          atena_evolution/
           relatorio.md
         retention-days: 7
         
     - name: ✅ Finalização
       run: |
         echo "✅ Evolução concluída. Próximo ciclo em 30 minutos."
-        
